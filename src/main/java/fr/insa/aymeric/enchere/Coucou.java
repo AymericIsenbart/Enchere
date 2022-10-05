@@ -8,6 +8,7 @@ package fr.insa.aymeric.enchere;
  *
  * @author aymer
  */
-public class Coucou {
-   
+public class Coucou 
+{
+   system.out.println("Coucou");
 }
