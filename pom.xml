@@ -11,4 +11,12 @@
         <maven.compiler.target>18</maven.compiler.target>
         <exec.mainClass>fr.insa.aymeric.enchere.Enchere</exec.mainClass>
     </properties>
+    
+    <dependencies>
+      <dependency>
+           <groupId>org.postgresql</groupId>
+           <artifactId>postgresql</artifactId>
+           <version>42.5.0</version>
+      </dependency>
+    </dependencies>
 </project>
