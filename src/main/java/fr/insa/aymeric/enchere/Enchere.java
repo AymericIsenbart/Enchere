@@ -36,7 +36,73 @@ public class Enchere
         return connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
    }
    
-   public static void creeTable(Connection con) throws SQLException 
+   public static void creerTableTest(Connection con) throws SQLException 
+   {
+        // je veux que le schema soit entierement créé ou pas du tout
+        // je vais donc gérer explicitement une transaction
+        con.setAutoCommit(false);
+        try ( Statement st = con.createStatement()) 
+        {
+            // creation des tables
+            st.executeUpdate(
+                    """
+                    create table utilisateur (
+                        id integer not null primary key
+                        generated always as identity,
+                    -- ceci est un exemple de commentaire SQL :
+                    -- un commentaire commence par deux tirets,
+                    -- et fini à la fin de la ligne
+                    -- cela me permet de signaler que le petit mot clé
+                    -- unique ci-dessous interdit deux valeurs semblables
+                    -- dans la colonne des noms.
+                        nom varchar(30) not null unique,
+                        pass varchar(30) not null
+                    )
+                    """);
+            st.executeUpdate(
+                    """
+                    create table TestBDD (
+                        u1 integer not null,
+                        u2 integer not null
+                    )
+                    """);
+            // je defini les liens entre les clés externes et les clés primaires
+            // correspondantes
+            /*st.executeUpdate(
+                    """
+                    alter table aime
+                        add constraint fk_aime_u1
+                        foreign key (u1) references utilisateur(id)
+                    """);
+            st.executeUpdate(
+                    """
+                    alter table aime
+                        add constraint fk_aime_u2
+                        foreign key (u2) references utilisateur(id)
+                    """);
+            // si j'arrive jusqu'ici, c'est que tout s'est bien passé
+            // je confirme (commit) la transaction
+            con.commit();
+            // je retourne dans le mode par défaut de gestion des transaction :
+            // chaque ordre au SGBD sera considéré comme une transaction indépendante
+            con.setAutoCommit(true);
+        } catch (SQLException ex) {
+            // quelque chose s'est mal passé
+            // j'annule la transaction
+            con.rollback();
+            // puis je renvoie l'exeption pour qu'elle puisse éventuellement
+            // être gérée (message à l'utilisateur...)
+            throw ex;*/
+        } 
+        finally 
+        {
+            // je reviens à la gestion par défaut : une transaction pour
+            // chaque ordre SQL
+            con.setAutoCommit(true);
+        }
+   }
+   
+   public static void creerTable(Connection con) throws SQLException 
    {
         // je veux que le schema soit entierement créé ou pas du tout
         // je vais donc gérer explicitement une transaction
@@ -102,7 +168,7 @@ public class Enchere
         }
    }
     
-   public static void creeTablePersonne(Connection con) throws SQLException 
+   public static void CreerTablePersonnes(Connection con) throws SQLException 
    {
         // je veux que le schema soit entierement créé ou pas du tout
         // je vais donc gérer explicitement une transaction
@@ -112,16 +178,73 @@ public class Enchere
             st.executeUpdate(
                     """
                     create table Personnes (
-                        id integer not null unique primary key
+                        id_per integer not null unique primary key
                         generated always as identity,
-                    --
-                    -- ceci est un exemple de commentaire SQL :
-                    --
-                        nom varchar(30) not null,
+                        --
+                        nom_perso varchar(30) not null,
                         prenom varchar(30) not null,
-                        email varchar(70) not null,
+                        email varchar(70) not null unique,
                         codePost varchar (8) not null,
-                        mdp varchar(30) not null 
+                        mdp varchar(30) not null,
+                        statut boolean default 'false'
+                    )
+                    """);
+        }
+        finally
+        {
+            // je reviens à la gestion par défaut : une transaction pour
+            // chaque ordre SQL
+            con.setAutoCommit(true);
+        }
+   }
+   
+   public static void CreerTableArticles(Connection con) throws SQLException 
+   {
+        // je veux que le schema soit entierement créé ou pas du tout
+        // je vais donc gérer explicitement une transaction
+        con.setAutoCommit(false);
+        try ( Statement st = con.createStatement()) {
+            // creation de la table Personne
+            st.executeUpdate(
+                    """
+                    create table Articles (
+                        id_art integer not null unique primary key
+                        generated always as identity,
+                        --
+                        id_proprietaire integer not null,
+                        nom_art varchar(60) not null,
+                        desc varchar(30) not null,
+                        prix_mini real not null default '0.01',
+                        cat varchar(30),
+                    )
+                    """);
+        }
+        finally
+        {
+            // je reviens à la gestion par défaut : une transaction pour
+            // chaque ordre SQL
+            con.setAutoCommit(true);
+        }
+   }
+   
+   public static void CreerTableEnchere(Connection con) throws SQLException 
+   {
+        // je veux que le schema soit entierement créé ou pas du tout
+        // je vais donc gérer explicitement une transaction
+        con.setAutoCommit(false);
+        try ( Statement st = con.createStatement()) {
+            // creation de la table Personne
+            st.executeUpdate(
+                    """
+                    create table Encheres (
+                        id_ench integer not null unique primary key
+                        generated always as identity,
+                        --
+                        id_proprio integer not null,
+                        id_art integer not null,
+                        id_acheteur integer not null,
+                        prix_achat real not null,
+                        date_fin date not null default '01.01.2025'
                     )
                     """);
         }
@@ -182,6 +305,126 @@ public class Enchere
         }
    }
     
+    public static void SupprimeTablePersonnes(Connection con) throws SQLException 
+    {
+      try ( Statement st = con.createStatement()) 
+      {
+          // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
+          // puis les tables
+          // suppression des liens
+          /*try 
+          {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u1
+                           """);
+              System.out.println("constraint fk_aime_u1 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }
+          try {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u2
+                  """);
+              System.out.println("constraint fk_aime_u2 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }*/
+          // je peux maintenant supprimer les tables
+          try {
+              st.executeUpdate(
+                      """
+                  drop table Personnes
+                  """);
+          } catch (SQLException ex) {
+              // nothing to do : maybe the table was not created
+          }
+      }
+   }
+    
+    public static void SupprimeTableArticles(Connection con) throws SQLException 
+    {
+      try ( Statement st = con.createStatement()) 
+      {
+          // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
+          // puis les tables
+          // suppression des liens
+          /*try 
+          {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u1
+                           """);
+              System.out.println("constraint fk_aime_u1 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }
+          try {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u2
+                  """);
+              System.out.println("constraint fk_aime_u2 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }*/
+          // je peux maintenant supprimer les tables
+          try {
+              st.executeUpdate(
+                      """
+                  drop table Articles
+                  """);
+          } catch (SQLException ex) {
+              // nothing to do : maybe the table was not created
+          }
+      }
+   }
+    
+    public static void SupprimeTableEncheres(Connection con) throws SQLException 
+    {
+      try ( Statement st = con.createStatement()) 
+      {
+          // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
+          // puis les tables
+          // suppression des liens
+          /*try 
+          {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u1
+                           """);
+              System.out.println("constraint fk_aime_u1 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }
+          try {
+              st.executeUpdate(
+                      """
+                  alter table aime
+                      drop constraint fk_aime_u2
+                  """);
+              System.out.println("constraint fk_aime_u2 dropped");
+          } catch (SQLException ex) {
+              // nothing to do : maybe the constraint was not created
+          }*/
+          // je peux maintenant supprimer les tables
+          try {
+              st.executeUpdate(
+                      """
+                  drop table Encheres
+                  """);
+          } catch (SQLException ex) {
+              // nothing to do : maybe the table was not created
+          }
+      }
+   }
+    
     // exemple de requete à la base de donnée
     public static void AffichePersonnes(Connection con) throws SQLException {
         try ( Statement st = con.createStatement()) {
@@ -229,48 +472,67 @@ public class Enchere
         }
     }
     
+    
+    
+    public static class EmailExisteDeja extends Exception {
+    }
+    
     // lors de la création d'un utilisateur, l'identificateur est automatiquement
     // créé par le SGBD.
     // on va souvent avoir besoin de cet identificateur dans le programme,
     // par exemple pour gérer des liens "aime" entre utilisateur
     // vous trouverez ci-dessous la façon de récupérer les identificateurs
-    // créés : ils se présentent comme un ResultSet particulier.
-    public static int creerPersonne(Connection con, String nom, String prenom, String email, String codepost, String mdp)throws SQLException
+    public static int creerPersonne(Connection con, String nom, String prenom, String email, String codepost, String mdp)
+            throws SQLException, EmailExisteDeja
     {
         // je me place dans une transaction pour m'assurer que la séquence
         // test du nom - création est bien atomique et isolée
         con.setAutoCommit(false);
         
-        try ( PreparedStatement pst = con.prepareStatement(
-                    """
-                insert into personnes (nom,prenom,email,codepost,mdp) values (?,?,?,?,?)
-                """, PreparedStatement.RETURN_GENERATED_KEYS)) 
-            {
-                pst.setString(1, nom);
-                pst.setString(2, prenom);
-                pst.setString(3, email);
-                pst.setString(4, codepost);
-                pst.setString(5, mdp);
-                pst.executeUpdate();
-                con.commit();
-
-                // je peux alors récupérer les clés créées comme un result set :
-                try ( ResultSet rid = pst.getGeneratedKeys()) 
-                {
-                    // et comme ici je suis sur qu'il y a une et une seule clé, je
-                    // fait un simple next 
-                    rid.next();
-                    // puis je récupère la valeur de la clé créé qui est dans la
-                    // première colonne du ResultSet
-                    int id = rid.getInt(1);
-                    return id;
-                }
-            }
-        
-        finally 
+        try ( PreparedStatement chercheMail = con.prepareStatement(
+                "select id from personnes where email = ?")) 
         {
+            chercheMail.setString(1, nom);
+            ResultSet testMail = chercheMail.executeQuery();
+            if (testMail.next()) 
+            {
+                throw new EmailExisteDeja();
+            }
+            try ( PreparedStatement pst = con.prepareStatement(
+                  """
+              insert into personnes (nom,prenom,email,codepost,mdp) values (?,?,?,?,?)
+              """, PreparedStatement.RETURN_GENERATED_KEYS)) 
+             {
+                 pst.setString(1, nom);
+                 pst.setString(2, prenom);
+                 pst.setString(3, email);
+                 pst.setString(4, codepost);
+                 pst.setString(5, mdp);
+                 pst.executeUpdate();
+                 con.commit();
+
+                 // je peux alors récupérer les clés créées comme un result set :
+                 try ( ResultSet rid = pst.getGeneratedKeys()) 
+                 {
+                     // et comme ici je suis sur qu'il y a une et une seule clé, je
+                     // fait un simple next 
+                     rid.next();
+                     // puis je récupère la valeur de la clé créé qui est dans la
+                     // première colonne du ResultSet
+                     int id = rid.getInt(1);
+                     return id;
+                 }
+            }
+         }
+         catch (Exception ex)
+         {
+            con.rollback();
+            throw ex; 
+         }
+         finally 
+         {
             con.setAutoCommit(true);
-        }
+         }
     }
     
     public static void SupprimePersonne(Connection con) throws SQLException 
@@ -308,11 +570,11 @@ public class Enchere
             System.out.println("-----------------------");
             System.out.println("");
             System.out.println("0) Fin du menu");
-            System.out.println("1) créer la BdD ");
-            System.out.println("2) Affiche les personnes ");
-            System.out.println("3) supprime les tables ");
-            System.out.println("4) Créer une personne");
-            System.out.println("5) Supprimer une personne");
+            System.out.println("1) Créer les tables ");
+            System.out.println("2) Afficher les personnes (dans la table Personnes)");
+            System.out.println("3) Supprimer les tables ");
+            System.out.println("4) Ajout dans une table");
+            System.out.println("5) Supprimer une personne (dans la table Personnes)");
             System.out.println("");
             
             rep = Lire.i();
@@ -321,8 +583,30 @@ public class Enchere
             {
                if (rep == 1) 
                {
-                  System.out.println("Crée une table");
-                  creeTable(con);
+                  System.out.println("Création des tables");
+                  System.out.println("Quelle table créer ? Test (1), Personnes (2), Articles (3), Enchere (4)");
+                  int res = Lire.i();
+                  
+                  if(res == 1)
+                  {
+                     creerTableTest(con);
+                     System.out.println("Les tables test ... & ... créées");
+                  }
+                  else if(res == 2)
+                  {
+                     CreerTablePersonnes(con);
+                     System.out.println("La table Personnes a été créée");
+                  }
+                  else if(res ==3)
+                  {
+                     CreerTableArticles(con);
+                     System.out.println("La table Articles a été créée");
+                  }
+                  else if(res == 4)
+                  {
+                     CreerTableEnchere(con);
+                     System.out.println("LA table des Enchères a été créée");
+                  }
                }
                if (rep == 2) 
                {
@@ -331,40 +615,116 @@ public class Enchere
                }
                if (rep == 3) 
                {
-                  System.out.println("Supprime une table");
-                  SupprimeTable(con);
+                  System.out.println("Supprimer les tables");
+                  System.out.println("Quelles tables supprimer ? Test (1), Personnes (2), Articles (3), Encheres (4)");
+                  int res = Lire.i();
+                  
+                  if(res == 1)
+                  {
+                     System.out.println("Certain de supprimer les Tables ... & ... ? oui : 1, non : 0");
+                     int ver = Lire.i();
+                     
+                     if(ver == 1)
+                     {
+                        SupprimeTable(con);
+                        System.out.println("Tables ... & ... supprimées");
+                     }
+                  }
+                  else if(res == 2)
+                  {
+                     System.out.println("Certain de supprimer la tables Personnes ? oui : 1, non : 0");
+                     int ver = Lire.i();
+                     
+                     if(ver == 1)
+                     {
+                        SupprimeTablePersonnes(con);
+                        System.out.println("Table Personnes supprimée");
+                     }
+                  }
+                  else if(res == 3)
+                  {
+                     System.out.println("Certain de supprimer la tables Articles ? oui : 1, non : 0");
+                     int ver = Lire.i();
+                     
+                     if(ver == 1)
+                     {
+                        SupprimeTableArticles(con);
+                        System.out.println("Table Articles supprimée");
+                     }
+                  }
+                  else if(res == 4)
+                  {
+                     System.out.println("Certain de supprimer la tables Encheres ? oui : 1, non : 0");
+                     int ver = Lire.i();
+                     
+                     if(ver == 1)
+                     {
+                        SupprimeTableEncheres(con);
+                        System.out.println("Table Encheres supprimée");
+                     }
+                  }
                }
+               
+               
                if (rep == 4) 
                {
-                  System.out.println("Créer une personne");
-
-                  System.out.println("Auto (1) ou Manuel (2) ?");
+                  System.out.println("Ajout dans une table : Dans quelles table ? Personne(1), Article(2), Enchere(3)");
                   int auto = Lire.i();
-                  
-                  if(auto == 2)
+                  if (auto == 1)
                   {
-                     System.out.println("Nom :");
-                     String nom = Lire.S();
-                     System.out.println("Prénom :");
-                     String prenom = Lire.S();
-                     System.out.println("Email :");
-                     String email = Lire.S();
-                     System.out.println("CP :");
-                     String CP = Lire.S();
-                     System.out.println("Mdp :");
-                     String mdp = Lire.S();
+                     System.out.println("Ajout d'une personne ? Auto (1) ou Manuel (2) ?");
+                     auto = Lire.i();
+                     
+                     try
+                     {
+                        if(auto == 2)
+                        {
+                           System.out.println("Nom :");
+                           String nom = Lire.S();
+                           System.out.println("Prénom :");
+                           String prenom = Lire.S();
+                           System.out.println("Email :");
+                           String email = Lire.S();
+                           System.out.println("CP :");
+                           String CP = Lire.S();
+                           System.out.println("Mdp :");
+                           String mdp = Lire.S();
 
-                     creerPersonne(con, nom, prenom, email, CP, mdp);
+                           creerPersonne(con, nom, prenom, email, CP, mdp);
+                        }
+                        else if(auto == 1)
+                        {
+                           String nom = "GOSSE";
+                           String prenom = "Stanislas";
+                           String email = "stanislas.gosse@insa-strasbourg.fr";
+                           String CP = "FR-67000";
+                           String mdp = "Mt_St_Odile!";
+                           creerPersonne(con, nom, prenom, email, CP, mdp);
+                        }
+                     }
+                     catch(EmailExisteDeja ex)
+                     {
+
+                     }
                   }
-                  else if(auto == 1)
+                  else if(auto == 2)
                   {
-                     String nom = "GOSSE";
-                     String prenom = "Stanislas";
-                     String email = "stanislas.gosse@insa-strasbourg.fr";
-                     String CP = "FR-67000";
-                     String mdp = "Mt_St_Odile!";
-                     creerPersonne(con, nom, prenom, email, CP, mdp);
+                     System.out.println("Ajout d'un article. Auto(1) ou Manuel(2) ?");
+                     auto = Lire.i();
+                     
+                     if(auto == 1)
+                     {
+                        System.out.println("automatique");
+                     }
+                     else if(auto == 2)
+                     {
+                        System.out.println("manuel");
+                     }
                   }
+                  
+                  
+                  
+                  
                }
                if (rep == 5) 
                {
