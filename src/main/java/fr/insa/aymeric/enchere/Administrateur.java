@@ -10,8 +10,8 @@ package fr.insa.aymeric.enchere;
  */
 public class Administrateur extends Personne 
 {
-   public Administrateur (int id_per, String nom_per, String prenom_per, String email, String codePost, String mdp)
+   public Administrateur (String nom_per, String prenom_per, String email, String codePost, String mdp)
    {
-      super(id_per, nom_per, prenom_per, email, codePost, mdp);
+      super(nom_per, prenom_per, email, codePost, mdp);
    }
 }
