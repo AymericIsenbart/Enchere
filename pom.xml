@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
-        <exec.mainClass>fr.insa.aymeric.enchere.Enchere</exec.mainClass>
+        <exec.mainClass>fr.insa.aymeric.enchere.Main</exec.mainClass>
     </properties>
     
     <dependencies>
