@@ -287,7 +287,7 @@ public class Main
                   
                   if(ans == 1)
                   {
-                     Personne.SupprimePersonne(con);
+                     //Personne.SupprimePersonne(con);
                      //Coucou !!!!
                   }
                   else if (ans == 2)
