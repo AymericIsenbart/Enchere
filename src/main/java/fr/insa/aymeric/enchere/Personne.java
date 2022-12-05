@@ -154,15 +154,14 @@ public class Personne
     public static void AffichePersonnes(Connection con) throws SQLException {
        System.out.println("");
         try ( Statement st = con.createStatement()) {
-            try ( ResultSet tlu = st.executeQuery("select * from personnes")) {
-                // ici, on veut lister toutes les lignes, d'où le while
+            try (ResultSet tlu = st.executeQuery("select * from personnes")) {
                 while (tlu.next()) {
                     // Ensuite, pour accéder à chaque colonne de la ligne courante,
                     // on a les méthode getInt, getString... en fonction du type
                     // de la colonne.
 
                     // on peut accéder à une colonne par son nom :
-                    int id = tlu.getInt("id");
+                    int id = tlu.getInt(1);
                     // ou par son numéro (la première colonne a le numéro 1)
                     
                     String nom = tlu.getString(2);
@@ -181,7 +180,7 @@ public class Personne
     public static Personne TrouvePersonne(Connection con, int id) throws SQLException 
     {
         try ( PreparedStatement chercheId = con.prepareStatement(
-                "select * from personnes where id = ?")) 
+                "select * from personnes where id_per = ?")) 
         {
            chercheId.setInt(1, id);
             ResultSet testId = chercheId.executeQuery();
@@ -218,9 +217,9 @@ public class Personne
         con.setAutoCommit(false);
         
         try ( PreparedStatement chercheMail = con.prepareStatement(
-                "select id from personnes where email = ?")) 
+                "select id_per from personnes where email = ?")) 
         {
-            chercheMail.setString(1, pers.getNom_per());
+            chercheMail.setString(1, pers.getEmail());
             ResultSet testMail = chercheMail.executeQuery();
             if (testMail.next()) 
             {
@@ -228,7 +227,7 @@ public class Personne
             }
             try ( PreparedStatement pst = con.prepareStatement(
                   """
-              insert into personnes (nom,prenom,email,codepost,mdp) values (?,?,?,?,?)
+              insert into personnes (nom_perso,prenom,email,codepost,mdp) values (?,?,?,?,?)
               """, PreparedStatement.RETURN_GENERATED_KEYS)) 
              {
                  pst.setString(1, pers.getNom_per());
@@ -238,18 +237,6 @@ public class Personne
                  pst.setString(5, pers.getMdp());
                  pst.executeUpdate();
                  con.commit();
-
-                 // je peux alors récupérer les clés créées comme un result set :
-                 try ( ResultSet rid = pst.getGeneratedKeys()) 
-                 {
-                     // et comme ici je suis sur qu'il y a une et une seule clé, je
-                     // fait un simple next 
-                     rid.next();
-                     // puis je récupère la valeur de la clé créé qui est dans la
-                     // première colonne du ResultSet
-                     int id = rid.getInt(1);
-                     return id;
-                 }
             }
          }
          catch (Exception ex)
@@ -261,6 +248,8 @@ public class Personne
          {
             con.setAutoCommit(true);
          }
+        
+        return 0;
     }
     
     /*public static void SupprimePersonne(Connection con) throws SQLException 
