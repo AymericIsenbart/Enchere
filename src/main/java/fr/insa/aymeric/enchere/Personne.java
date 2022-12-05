@@ -340,6 +340,18 @@ public class Personne
    {
       int id_per = this.getIdPersonne(con);
       
+   }
+   
+   
+   public void RemplirTableEnch(Connection con, int n)
+   {
+      String[] prenom;
+      String[] nom;
+      String[] mdp;
+      
+      //prenom = ["Adele", "Albane", "Anais", "Axel", "Agathe", "Adrien", "Alice", "Amelia", "Anna", "Apolline", "Augustin", "Ava", "Candice", "Arthur", "Mae", "Manon", "Mathias", "Maelle", "Martin", "Lois", "Louis", "Louka", "Mateo", "Lena", "Lucas", "Marceau", "Matteo", "Valentin", "Robin"];
+      
+      //List<String> supplierNames = new List<String>();
       
    }
 }

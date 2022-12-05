@@ -4,6 +4,8 @@
  */
 package fr.insa.aymeric.enchere;
 
+import com.interf.application.Application;
+import fr.insa.aymeric.enchere.ressources.Lire;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,7 +35,14 @@ public class Main
    {
         return connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
    }
-   public static void menu(Connection con)
+   
+   public static void InterfaceGraphique(String[] args)
+   {
+      Application.main(args);
+   }
+   
+   
+   public static void menu(Connection con, String[] args)
    {
         int rep = -1;
         while (rep != 0) 
@@ -48,6 +57,8 @@ public class Main
             System.out.println("5) Supprimer dans une table");
             System.out.println("6) Donner les information sur un composant");
             System.out.println("7) Enchérir");
+            System.out.println("8) Lancer l'interface graphique");
+            System.out.println("9) Modifier un paramètre");
             System.out.println("");
             
             rep = Lire.i();
@@ -337,10 +348,34 @@ public class Main
                }
                if(rep == 8)
                {
-                  Enchere.AfficheArticlesEncheres(con);
-                  System.out.println("Id enchère : " + Enchere.TrouveEnchere(con, Lire.i()).getIdEnchere(con));
+                  InterfaceGraphique(args);
+               }
+               
+               if(rep == 9)
+               {
+                  System.out.println("Modifier un paramètre dans quelle table ? Personne(0), Articles(1), Enchere(2)");
+                  int ans = Lire.i();
                   
-                  
+                  if(ans == 0)
+                  {
+                     System.out.println("Quel personne modifier ?");
+                     Personne.AffichePersonnes(con);
+                     
+                     int per = Lire.i();
+                     Personne perso = Personne.TrouvePersonne(con, per);
+                     
+                     System.out.println("Quoi modifier ? Nom(0), Prénom(1), email(2), code postal(3), mot de passe(4)");
+                     
+                     
+                  }
+                  else if(ans == 1)
+                  {
+                     System.out.println("Quel article modifier ?");
+                  }
+                  else if(ans == 2)
+                  {
+                     System.out.println("Quelle enchère modifier ?");
+                  }
                }
                
             } 
@@ -356,7 +391,7 @@ public class Main
         try (Connection con = defautConnect()) 
         {
             System.out.println("connecté !!!");
-            menu(con);
+            menu(con, args);
         } 
         catch (Exception ex) 
         {
