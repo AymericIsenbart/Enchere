@@ -10,6 +10,7 @@ import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 /**
  *
@@ -38,7 +39,7 @@ public class Main
    
    public static void InterfaceGraphique(String[] args)
    {
-      Application.main(args);
+      Application.Application(args);
    }
    
    
@@ -59,6 +60,7 @@ public class Main
             System.out.println("7) Enchérir");
             System.out.println("8) Lancer l'interface graphique");
             System.out.println("9) Modifier un paramètre");
+            System.out.println("17) Test");
             System.out.println("");
             
             rep = Lire.i();
@@ -376,6 +378,14 @@ public class Main
                   {
                      System.out.println("Quelle enchère modifier ?");
                   }
+               }
+               if(rep == 17)
+               {
+                  Personne[] people = Personne.ListPersonAlea(con, 10);
+                  /*for (int i=0; i<people.length; i++)
+                  {
+                     System.out.println(people[i]);
+                  }*/
                }
                
             } 

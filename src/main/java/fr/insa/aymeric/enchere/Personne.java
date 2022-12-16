@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 /**
  *
@@ -332,15 +333,61 @@ public class Personne
    }
    
    
-   public void RemplirTableEnch(Connection con, int n)
+   public static Personne[] ListPersonAlea(Connection con, int n)
    {
-      String[] prenom;
-      String[] nom;
-      String[] mdp;
+      String[] prenom = {"Adele", "Albane", "Anais", "Axel", "Agathe", "Adrien", "Alice", "Amelia", "Anna", "Apolline", "Augustin", "Ava", "Candice", "Arthur", "Mae", "Manon", "Mathias", "Maelle", "Martin", "Lois", "Louis", "Louka", "Mateo", "Lena", "Lucas", "Marceau", "Matteo", "Valentin", "Robin"};
+      String[] nom = {"Robion", "Freanfe", "Preofr", "Prout", "Peter", "Weissenberger", "Hood", "Riberi", "Benzema", "Lemarchal", "Lizzarazu", "Montagnier", "Renoir", "Potter", "Vae", "Velle", "Pricht", "Wagner", "Marteu", "Langlois", "Deschaux", "Hernadez", "Boubakar", "Gross", "Kante", "Dembele", "Uhman", "Lopez", "Shakespeare"};;
+      String[] mdp = {"dqrss", "kijgfhudyg", "<ewvxtbc", "yjbhf", "vikuvhjg", "ubfhy", "'(z-", "cvbdf", "2571", "frcgtègj", "olikujyhtgrf", "cqvstrg", "ujybhdvbdhvgc", "uhtdygx", "igkunbchyvdbcvsxrq", "cscgtdcgts", "dfsvdtygh", "bn(uhgfe(csvxc", "fcvgbhtdgtvxz", "csgzvtxszwc", "fcgzvtsfdfr", "cvsgztdfzsr", "cxqvsgrtczx", "bhtvgcrxfe", "poiuytrez", "azertyuiop", "cvtgrstecgdv", "jyburtecrds", "rfscvdfnyctrxse"};;
+      String[] adress = {"gmail", "hotmail", "yahoo", "orange", "free", "printer"};
+      String[] CP = {"FR", "AL", "BE", "US", "TW", "CH"};
       
-      //prenom = ["Adele", "Albane", "Anais", "Axel", "Agathe", "Adrien", "Alice", "Amelia", "Anna", "Apolline", "Augustin", "Ava", "Candice", "Arthur", "Mae", "Manon", "Mathias", "Maelle", "Martin", "Lois", "Louis", "Louka", "Mateo", "Lena", "Lucas", "Marceau", "Matteo", "Valentin", "Robin"];
+      Personne[] people = new Personne[n];
       
-      //List<String> supplierNames = new List<String>();
+      Personne perso;
+      
+      int a_nm;
+      int a_pnm;
+      int a_mdp;
+      
+      String Pnom;
+      String Ppnom;
+      String Mdp;
+      String Padr;
+      String email;
+      int codepost;
+      String CPp;
+     
+      double var;
+      
+      for (int i=0; i<n; i++)
+      {
+         var = Math.random()*prenom.length;
+         Pnom = nom[(int)var];
+         
+         var = Math.random()*nom.length;
+         Ppnom = prenom[(int)var];
+         
+         var = Math.random()*mdp.length;
+         Mdp = mdp[(int)var];
+         
+         
+         
+         var =  Math.random()*99999;
+         codepost = (int)var;
+         var = Math.random()*CP.length;
+         CPp = CP[(int)var] + "-" + codepost;
+         
+         var = Math.random()*adress.length;
+         Padr = adress[(int)var];
+         email = Pnom + "." + Ppnom + "@" + Padr + "." + CPp.charAt(0) + CPp.charAt(1); 
+         
+         people[i] = new Personne(Pnom, Ppnom, email, CPp, Mdp);
+         System.out.println(people[i]);
+      }
+      
+      
+      
+      return people;
       
    }
 }
