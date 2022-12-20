@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -23,6 +24,17 @@ public class Personne
    private String email;
    private String codePost;
    private String mdp;
+   private boolean admin;
+   
+   public Personne(String nom_per, String prenom_per, String email, String codePost, String mdp, boolean admin)
+   {
+      this.nom_per = nom_per;
+      this.prenom_per = prenom_per;
+      this.email = email;
+      this.codePost = codePost;
+      this.mdp = mdp;
+      this.admin = admin;
+   }
    
    public Personne(String nom_per, String prenom_per, String email, String codePost, String mdp)
    {
@@ -31,8 +43,16 @@ public class Personne
       this.email = email;
       this.codePost = codePost;
       this.mdp = mdp;
+      this.admin = false;
    }
 
+   public void setAdmin(boolean admin) {
+      this.admin = admin;
+   }
+
+   public boolean getAdmin() {
+      return admin;
+   }
 
    public String getNom_per() {
       return nom_per;
@@ -83,8 +103,6 @@ public class Personne
     
     public static void CreerTablePersonnes(Connection con) throws SQLException 
    {
-        // je veux que le schema soit entierement créé ou pas du tout
-        // je vais donc gérer explicitement une transaction
         con.setAutoCommit(false);
         try ( Statement st = con.createStatement()) {
             // creation de la table Personne
@@ -154,26 +172,14 @@ public class Personne
     // exemple de requete à la base de donnée
     public static void AffichePersonnes(Connection con) throws SQLException {
        System.out.println("");
-        try ( Statement st = con.createStatement()) {
-            try (ResultSet tlu = st.executeQuery("select * from personnes")) {
-                while (tlu.next()) {
-                    // Ensuite, pour accéder à chaque colonne de la ligne courante,
-                    // on a les méthode getInt, getString... en fonction du type
-                    // de la colonne.
-
-                    // on peut accéder à une colonne par son nom :
-                    int id = tlu.getInt(1);
-                    // ou par son numéro (la première colonne a le numéro 1)
-                    
-                    String nom = tlu.getString(2);
-                    String prenom = tlu.getString(3);
-                    String email = tlu.getString(4);
-                    String CP = tlu.getString(5);
-                    String Mdp = tlu.getString(6);
-                    System.out.println(id + " : " + nom + " " + prenom + " " + CP + " (" + email + ")" + " : " + Mdp);
-                }
-            }
-        }
+       
+       List<Personne> Lper = getAllPersonne(con);
+       
+       for (int i=0; i<Lper.size(); i++)
+       {
+          System.out.println(Lper.get(i));
+       }
+       
         System.out.println("");
     }
     
@@ -324,6 +330,36 @@ public class Personne
          }    
        }
        return 0;
+   }
+   
+   public static List<Personne> getAllPersonne(Connection con) throws SQLException
+   {
+      List<Personne> Lpers = new ArrayList<>();;
+      String nom_per;
+      String prenom_per;
+      String email;
+      String codepost;
+      String Mdp;
+      boolean statut;
+            
+      try ( Statement st = con.createStatement()) 
+      {
+         try (ResultSet tlu = st.executeQuery("select * from personnes")) 
+         {
+            while(tlu.next())
+            {
+               nom_per = tlu.getString(2);
+               prenom_per = tlu.getString(3);
+               email = tlu.getString(4);
+               codepost = tlu.getString(5);
+               Mdp = tlu.getString(6);
+               statut = tlu.getBoolean(7);
+               
+               Lpers.add(new Personne(nom_per, prenom_per, email, codepost, Mdp, statut));
+            }
+         }
+     }
+      return Lpers;
    }
    
    public void MiseEnEnchere(Connection con) throws SQLException 

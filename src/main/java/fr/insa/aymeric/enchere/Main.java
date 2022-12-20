@@ -8,9 +8,11 @@ import com.interf.application.Application;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -161,33 +163,38 @@ public class Main
                      
                      try
                      {
-                        if(auto == 2)
+                        if(auto == 1)
                         {
-                           System.out.println("Nom :");
+                           System.out.println("Combien de personnes ajouter ?");
+                           int nb = Lire.i();
+                           
+                           Personne[] people = Personne.ListPersonAlea(con, nb);
+                           
+                           for(int i=0; i<people.length; i++)
+                           {
+                              Personne.NouvellePersonne(con, people[i]);
+                           }
+                           
+                        }
+                        else if(auto == 2)
+                        {
+                           System.out.println("Manuel");
+                           System.out.println("Quel nom ?");
                            String nom = Lire.S();
-                           System.out.println("Prénom :");
+                           
+                           System.out.println("Quel prénom ?");
                            String prenom = Lire.S();
-                           System.out.println("Email :");
+                           
+                           System.out.println("Quel email?");
                            String email = Lire.S();
-                           System.out.println("CP :");
-                           String CP = Lire.S();
-                           System.out.println("Mdp :");
+                           
+                           System.out.println("Donner un code postal (PP-00000)");
+                           String CP = "FR-67000";
+                           
+                           System.out.println("Donner un mot de passe");
                            String mdp = Lire.S();
                            
                            Personne pers = new Personne(nom, prenom, email, CP, mdp);
-                           
-                           Personne.NouvellePersonne(con, pers);
-                        }
-                        else if(auto == 1)
-                        {
-                           String nom = "GOSSE";
-                           String prenom = "Stanislas";
-                           String email = "stanislas.gosse@insa-strasbourg.fr";
-                           String CP = "FR-67000";
-                           String mdp = "Mt_St_Odile!";
-                           
-                           Personne pers = new Personne(nom, prenom, email, CP, mdp);
-                           
                            Personne.NouvellePersonne(con, pers);
                         }
                      }
@@ -204,15 +211,15 @@ public class Main
                      if(auto == 1)
                      {
                         System.out.println("Automatique");
+                        System.out.println("Combien d'article créer ?");
+                        int ans = Lire.i();
                         
-                        Personne per = Personne.TrouvePersonne(con, 1);
-                        String nom = "Baguettes Batterie";
-                        String desc = "Baguettes en bois, presque pas cassées. Sonorité exceptionnelle.";
-                        String cat = "LO";
+                        List<Article> Lart = Article.ListArticleAlea(con, ans);
                         
-                        Article art = new Article(nom, desc, per, cat);
-
-                        Article.creerArticle(con, art, per.getIdPersonne(con));
+                        for(int i=0; i<Lart.size(); i++)
+                        {
+                           Article.creerArticle(con, Lart.get(i));
+                        }
 
                         
                      }
@@ -236,7 +243,7 @@ public class Main
                         
                         Article art = new Article(nom_art, desc, perso, cat);
 
-                        Article.creerArticle(con, art, perso.getIdPersonne(con));    
+                        Article.creerArticle(con, art);    
                      }
                   }
                   else if (auto == 3)
@@ -279,7 +286,17 @@ public class Main
                         }
                         else if(auto == 1)
                         {
+                           System.out.println("Automatique");
+                           System.out.println("Combien d'enchères créer ?");
                            
+                           int ans = Lire.i();
+                           
+                           List<Enchere> Lench = Enchere.ListEnchereAlea(con, ans);
+                           
+                           for(int i=0; i<Lench.size(); i++)
+                           {
+                              Enchere.NouvelleEnchere(con, Lench.get(i));
+                           }
                         }
                      }
                      catch(Enchere.EnchereExisteDeja ex)
@@ -381,11 +398,11 @@ public class Main
                }
                if(rep == 17)
                {
-                  Personne[] people = Personne.ListPersonAlea(con, 10);
-                  /*for (int i=0; i<people.length; i++)
+                  List<Enchere> Lench = Enchere.ListEnchereAlea(con, 10);
+                  for(int i=0; i<Lench.size(); i++)
                   {
-                     System.out.println(people[i]);
-                  }*/
+                     System.out.println(Lench.get(i));
+                  }
                }
                
             } 
@@ -407,5 +424,8 @@ public class Main
         {
             throw new Error(ex);
         }
+        
+        
+        
     }
 }

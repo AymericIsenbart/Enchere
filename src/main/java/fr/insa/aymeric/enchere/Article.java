@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -196,32 +197,47 @@ public class Article
         return null;
     }
    
+    public static List<Article> getAllArticle(Connection con) throws SQLException
+    {
+      List<Article> Lart = new ArrayList<>();
+       
+      String nom;
+      String desc;
+      int id_proprio;
+      String cat;
+       
+      try ( Statement st = con.createStatement()) 
+      {
+         try (ResultSet tlu = st.executeQuery("select * from articles")) 
+         {
+            while(tlu.next())
+            {
+               nom = tlu.getString(3);
+               desc = tlu.getString(4);
+               id_proprio = tlu.getInt(2);
+               cat = tlu.getString(5);
+
+               Lart.add(new Article(nom, desc, Personne.TrouvePersonne(con, id_proprio), cat));               
+            }
+         }
+      }
+      return Lart;
+       
+    }
+    
    public static void AfficheArticlesPersonnes(Connection con, int id_per) throws SQLException 
    {
-        try ( Statement st = con.createStatement()) 
+        List<Article> Lart = getAllArticle(con);
+        
+        System.out.println("");
+        for(int i=0; i<Lart.size(); i++)
         {
-            try ( ResultSet tlu = st.executeQuery(
-            """
-                     select id_art, id_proprietaire from Articles 
-                           join Personnes on Personnes.id = Articles.id_proprietaire
-                     """)) {
-               
-                while (tlu.next()) 
-                {
-                    int id_art =tlu.getInt(1);
-                    int id_perso =tlu.getInt(2);
-                
-                                        
-                    if (id_perso== id_per)
-                    {
-                        System.out.println("id art :" + id_art + " " + TrouveArticle(con, id_art));
-                    }
-                }
-            }
+           System.out.println(Lart.get(i));
         }
+        System.out.println("");
     }
    
-   public static void creerArticle(Connection con, Article art, int id)
+   public static void creerArticle(Connection con, Article art)
             throws SQLException
     {
         // je me place dans une transaction pour m'assurer que la séquence
@@ -233,7 +249,7 @@ public class Article
            insert into articles (id_proprietaire,nom_art,desc_art,cat) values (?,?,?,?)
            """, PreparedStatement.RETURN_GENERATED_KEYS)) 
           {
-              pst.setInt(1, id);
+              pst.setInt(1, art.getPer_art().getIdPersonne(con));
               pst.setString(2, art.getNom_art());
               pst.setString(3, art.getDesc_art());
               pst.setString(4, art.getCat());
@@ -309,4 +325,41 @@ public class Article
        }
        return 0;
    }
+   
+   public static List<Article> ListArticleAlea(Connection con, int n) throws SQLException
+   {
+      String[] cat = {"TE", "CU", "MA", "VE", "BR", "TR", "JE", "PU", "BE", "MU", "SP"};
+      String[] nom = {"Telephone", "Smartphone", "Casque chantier", "Classeur", "Machine à laver", "Lave vaisselle", "Chaine HI-FI", "Roman", "Bande dessinée", "Statuette", "Batte", "Chaussures à crampons", "Protèges tibia", "Lunette de vision nocturne", "Jumelles", "Poële", "Visseuse", "Burineur", "Ponceuse", "Tournevis", "Marteau", "Radiateur", "Cale porte", "Cadre photo", "Enceinte portable", "Vélo elliptique", "Meuble télé", "Armoire", "Manteau", "Robinet", "Chaise", "Imprimante", "DVD", "Chaussettes", "Tshirt", "Bonnet en laine", "Jeu de société", "Cartes de visite", "tondeuse à barbe", "tondeuse à gazon", "Rasoir", "Tronçonneuse", "Tracteur", "Fiat Multipla"};;
+      
+      List<Personne> Lper = Personne.getAllPersonne(con);
+      
+      List<Article> Lart = new ArrayList<>();
+      
+      
+      int a_nm;
+      int a_cat;
+      int a_pers;
+      
+      String Anom;
+      String Acat;
+      Personne per;
+     
+      double var;
+      
+      for(int i=0; i<n; i++)
+      {
+         var = Math.random()*(cat.length);
+         Acat = cat[(int)var];
+    
+         var = Math.random()*nom.length;
+         Anom = nom[(int)var];
+         
+         var = Math.random()*Lper.size();
+         per = Lper.get((int)var);
+         
+         Lart.add(new Article(Anom, Anom, per, Acat));
+      }
+      return Lart;
+   }
+      
 }

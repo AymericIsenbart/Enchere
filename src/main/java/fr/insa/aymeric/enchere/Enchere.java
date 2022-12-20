@@ -14,6 +14,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Date;  
+import java.util.ArrayList;
+import java.util.List;
 
 public class Enchere 
 {   
@@ -165,31 +167,45 @@ public class Enchere
       }
     }
     
+    public static List<Enchere> getAllEncheres (Connection con) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( Statement st = con.createStatement()) 
+      {
+         try (ResultSet tlu = st.executeQuery("select * from encheres")) 
+         {
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(4);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+      }
+       
+       return Lench;
+    }
+    
         
     public static void AfficheEncheres(Connection con) throws SQLException 
    {
+      List<Enchere> Lench = getAllEncheres(con);
+      
       System.out.println("");
-        try ( Statement st = con.createStatement()) {
-            try ( ResultSet tlu = st.executeQuery("select * from encheres"))
-            {
-                while (tlu.next())
-                {
-                    int id_art = tlu.getInt(2);
-                    Article art = Article.TrouveArticle(con, id_art);
-                    
-                    int id_ach = tlu.getInt(3);
-                    Personne acheteur = Personne.TrouvePersonne(con, id_ach);
-                    
-                    double prx = tlu.getDouble(4);
-                    
-                    String dt_fin = tlu.getString(5);
-                    
-                    Enchere ench = new Enchere(art, prx, dt_fin, acheteur);
-                    System.out.println(tlu.getInt(1) + " " + ench);
-                }
-            }
-        }
-        System.out.println("");
+      for(int i=0; i<Lench.size(); i++)
+      {
+         System.out.println(Lench.get(i));
+      }
+      System.out.println("");
     }
     
     public static void AfficheArticlesEncheres(Connection con) throws SQLException 
@@ -421,4 +437,62 @@ public class Enchere
          }  
     }
   }
+  
+  public static List<Enchere> ListEnchereAlea(Connection con, int n) throws SQLException
+   {
+      
+      List<Personne> Lper = Personne.getAllPersonne(con);
+      List<Article> Lart =Article.getAllArticle(con);
+      
+      List<Enchere> Lench = new ArrayList<>();
+      
+      if(n> Lart.size())
+      {
+         System.out.println("Il n'y a pas assez d'articles pour cela");
+      }
+      else
+      {
+         Article a_art;
+         Personne a_per;
+         double a_prix;
+         String a_date;
+
+         int a_annee;
+         int a_mois;
+         int a_jour;
+
+         double var;
+
+         for(int i=0; i<n; i++)
+         {
+            var = Math.random()*Lart.size();
+            a_art = Lart.get((int)var);
+
+            var = Math.random()*Lper.size();
+            a_per = Lper.get((int)var);
+
+            a_prix = 0.01 + Math.random()*1000;
+            
+            
+            var = Math.random()*10;
+            a_annee = 2023 + (int)var;
+            var = Math.random()*12;
+            a_mois = 1+ (int)var;
+            var =  var = Math.random()*29;
+            a_jour = 1 + (int)var;
+
+            a_date = a_annee + "-" + a_mois + "-" + a_jour;         
+
+            Lench.add(new Enchere(a_art, a_prix, a_date, a_per));
+            
+            Lart.remove(a_art);
+         }
+      }
+      return Lench;
+   }
+      
+    
+    
+    
+    
 }
