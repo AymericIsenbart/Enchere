@@ -370,7 +370,7 @@ public class Enchere
     public static void SupprimeEnchere(Connection con, int idArt) throws SQLException 
     {
         con.setAutoCommit(false);
-         try ( PreparedStatement pst = con.prepareStatement(
+         try (PreparedStatement pst = con.prepareStatement(
             "delete from encheres where id_art = ?"))
          {
            pst.setInt(1, idArt);
@@ -380,6 +380,80 @@ public class Enchere
         {
             con.setAutoCommit(true);
         }
+    }
+    
+    public static List<Enchere> GetProprioEnchere(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       Article art;
+       
+       int id_art;
+       int id_ench;
+       String date;
+       double prix;
+       
+       
+       try(PreparedStatement pst = con.prepareStatement("""
+           select * from encheres
+           left join articles on articles.id_art = encheres.id_art
+           where id_proprietaire=?"""))
+       {
+          pst.setInt(1, id_proprio);
+          
+          ResultSet rst = pst.executeQuery();
+          while(rst.next())
+          {
+             id_art = rst.getInt(2);
+             id_ench = rst.getInt(3);
+             prix = rst.getDouble(4);
+             date = rst.getString(5);
+             
+             Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prix, date, Personne.TrouvePersonne(con, id_ench)));            
+          }
+       }
+       
+       return Lench;
+    }
+    
+    public static void SupprimeEnchereProprio(Connection con, Personne pers) throws SQLException
+    {
+       int id_perso = pers.getIdPersonne(con);
+       List<Enchere> Lench = GetProprioEnchere(con, id_perso);
+       
+       int id_ench;
+       
+       for(int i=0; i<Lench.size(); i++)
+       {
+          id_ench = Lench.get(i).getIdEnchere(con);
+          try (PreparedStatement pst = con.prepareStatement("""
+                     delete from encheres
+                     where id_ench=?
+                     """))  
+         {
+            pst.setInt(1, id_ench);
+            pst.executeUpdate();
+         }
+       }    
+    }
+    
+    public static void SupprimeEnchereProprio(Connection con, int id_pers) throws SQLException
+    {
+      List<Enchere> Lench = GetProprioEnchere(con, id_pers);
+       
+      int id_ench;
+
+      for(int i=0; i<Lench.size(); i++)
+      {
+         id_ench = Lench.get(i).getIdEnchere(con);
+         try (PreparedStatement pst = con.prepareStatement("""
+                    delete from encheres
+                    where id_ench=?
+                    """))  
+         {
+            pst.setInt(1, id_ench);
+            pst.executeUpdate();
+         }
+      }     
     }
     
     
@@ -443,8 +517,21 @@ public class Enchere
       
       List<Personne> Lper = Personne.getAllPersonne(con);
       List<Article> Lart =Article.getAllArticle(con);
-      
+      List<Enchere> Lench_creee = getAllEncheres(con);
+            
       List<Enchere> Lench = new ArrayList<>();
+      
+      for(int i=0; i<Lart.size(); i++)
+      {
+         for(int j=0; j<Lench_creee.size(); j++)
+         {
+            if(Lench_creee.get(j).getArt().getIdArticle(con) == Lart.get(i).getIdArticle(con))
+            {
+               Lart.remove(i);
+            }
+         }      
+      }
+      
       
       if(n> Lart.size())
       {
@@ -465,6 +552,7 @@ public class Enchere
 
          for(int i=0; i<n; i++)
          {
+            
             var = Math.random()*Lart.size();
             a_art = Lart.get((int)var);
 
@@ -490,9 +578,4 @@ public class Enchere
       }
       return Lench;
    }
-      
-    
-    
-    
-    
 }

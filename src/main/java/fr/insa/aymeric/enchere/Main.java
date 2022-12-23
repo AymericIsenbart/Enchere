@@ -286,8 +286,10 @@ public class Main
                         }
                         else if(auto == 1)
                         {
+                           int nb_poss = Article.getAllArticle(con).size() - Enchere.getAllEncheres(con).size();
+                           
                            System.out.println("Automatique");
-                           System.out.println("Combien d'enchères créer ?");
+                           System.out.println("Combien d'enchères créer ? (inférieur à " + nb_poss + ")");
                            
                            int ans = Lire.i();
                            
@@ -398,13 +400,18 @@ public class Main
                }
                if(rep == 17)
                {
-                  List<Enchere> Lench = Enchere.ListEnchereAlea(con, 10);
+                  System.out.println("Quel propriétaire regarder ?");
+                  int ans = Lire.i();
+                  
+                  List<Enchere> Lench = Enchere.GetProprioEnchere(con, ans);
+                  
                   for(int i=0; i<Lench.size(); i++)
                   {
                      System.out.println(Lench.get(i));
                   }
+                  
+                  Enchere.SupprimeEnchereProprio(con, ans);
                }
-               
             } 
             catch (SQLException ex) 
             {
@@ -423,9 +430,6 @@ public class Main
         catch (Exception ex) 
         {
             throw new Error(ex);
-        }
-        
-        
-        
+        }  
     }
 }
