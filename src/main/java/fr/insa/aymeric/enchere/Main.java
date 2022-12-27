@@ -400,17 +400,7 @@ public class Main
                }
                if(rep == 17)
                {
-                  System.out.println("Quel propriétaire regarder ?");
-                  int ans = Lire.i();
-                  
-                  List<Enchere> Lench = Enchere.GetProprioEnchere(con, ans);
-                  
-                  for(int i=0; i<Lench.size(); i++)
-                  {
-                     System.out.println(Lench.get(i));
-                  }
-                  
-                  Enchere.SupprimeEnchereProprio(con, ans);
+                  Enchere.Encherir(con, 23, 7, 900);
                }
             } 
             catch (SQLException ex) 

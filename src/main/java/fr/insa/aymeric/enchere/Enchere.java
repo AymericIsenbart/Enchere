@@ -340,6 +340,48 @@ public class Enchere
          }
     }
     
+    public static void updateAcheteur(Connection con, int id_ench, int id_per) throws SQLException
+    {
+       try(PreparedStatement pst = con.prepareStatement("""
+            Update encheres
+            set id_acheteur=?
+            where id_ench=?"""))
+       {
+          pst.setInt(1, id_per);
+          pst.setInt(2, id_ench);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updatePrix(Connection con, int id_ench, double prix) throws SQLException
+    {
+       try(PreparedStatement pst = con.prepareStatement("""
+            Update encheres
+            set prix_achat=?
+            where id_ench=?"""))
+       {
+          pst.setDouble(1, prix);
+          pst.setInt(2, id_ench);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updateDate(Connection con, int id_ench, String date) throws SQLException
+    {
+       try(PreparedStatement pst = con.prepareStatement("""
+            Update encheres
+            set date_fin=?
+            where id_ench=?"""))
+       {
+          pst.setString(1, date);
+          pst.setInt(2, id_ench);
+          
+          pst.executeUpdate();
+       }
+    }
+    
     public static void SupprimeEnchere(Connection con) throws SQLException 
     {
        System.out.println("Afficher les enchère ?");
@@ -415,6 +457,38 @@ public class Enchere
        return Lench;
     }
     
+    public static List<Enchere> getAllEncherePersonne(Connection con, int id_pers) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_ench;
+       int id_art;
+       int id_proprio;
+       
+       
+       try(PreparedStatement pst = con.prepareStatement("""
+               select id_ench, id_art from encheres
+               where enchere.id_acheteur=?"""))
+       {
+          pst.setInt(1, id_pers);
+          
+          ResultSet rst = pst.executeQuery();
+          while(rst.next())
+          {
+             id_ench = rst.getInt(1);
+             id_art = rst.getInt(2);
+             
+             Article art = Article.TrouveArticle(con, id_art);
+             id_proprio = art.getPer_art().getIdPersonne(con);
+             
+             updateAcheteur(con, id_ench, id_proprio);
+          }
+          
+       }
+       
+       return Lench;
+    }
+    
     public static void SupprimeEnchereProprio(Connection con, Personne pers) throws SQLException
     {
        int id_perso = pers.getIdPersonne(con);
@@ -456,6 +530,19 @@ public class Enchere
       }     
     }
     
+    public static void SupprimeEncherePersonne(Connection con, int id_pers) throws SQLException
+    {
+       List<Enchere> Lench = getAllEncherePersonne(con, id_pers);
+       int id_proprio;
+       
+       for(int i=0; i<Lench.size(); i++)
+       {
+          id_proprio = Lench.get(i).getArt().getPer_art().getIdPersonne(con);
+          updateAcheteur(con, Lench.get(i).getIdEnchere(con), id_proprio);
+       }
+       
+    }
+    
     
     public static double PrixArticleEnchere(Connection con, Enchere ench) throws SQLException
     {
@@ -477,39 +564,23 @@ public class Enchere
        return -1;
     }
     
-    public static void Encherir(Connection con, Enchere ench, Personne acheteur, double prx) throws SQLException 
-    {
+   public static void Encherir(Connection con, int id_ench, int id_acheteur, double prx) throws SQLException 
+   {
+      if(prx > TrouveEnchere(con, id_ench).getPrix())
+      {
+         updateAcheteur(con, id_ench, id_acheteur);
+         updatePrix(con, id_ench, prx);
+      }
+  }
+
+    
+   public static void Encherir(Connection con, Enchere ench, Personne acheteur, double prx) throws SQLException 
+   {
       if(prx > ench.getPrix())
       {
-         try
-         {
-            con.setAutoCommit(false);
-            // suppression de tous les anciens amours
-            try ( PreparedStatement pst = con.prepareStatement(
-               """
-              update encheres
-               set prix_achat = ?, id_acheteur = ?
-               where id_ench = ?
-              """)) 
-            {
-                pst.setDouble(1, prx);
-                pst.setInt(2, acheteur.getIdPersonne(con));
-                pst.setInt(3, ench.getIdEnchere(con, ench.getArt()));
-                pst.executeUpdate();
-            }
-
-            con.commit();
-         }
-         catch (SQLException ex) 
-         {
-            con.rollback();
-            throw ex;
-         } 
-         finally 
-         {
-            con.setAutoCommit(true);
-         }  
-    }
+         updateAcheteur(con, ench.getIdEnchere(con), acheteur.getIdPersonne(con));
+         updatePrix(con, 0, prx);
+      }
   }
   
   public static List<Enchere> ListEnchereAlea(Connection con, int n) throws SQLException
