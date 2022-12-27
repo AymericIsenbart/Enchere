@@ -45,7 +45,7 @@ public class Enchere
    {
       this.art = art;
       this.prix = prix;
-      this.date_fin = "2030-01-01";
+      this.date_fin = "2030-11-01";
       this.enchereur = enchereur;
    }
    
@@ -53,7 +53,7 @@ public class Enchere
    {
       this.art = art;
       this.prix = 0.01;
-      this.date_fin = "2030-01-01";
+      this.date_fin = "2030-11-01";
       this.enchereur = enchereur;
    }
    
@@ -117,7 +117,7 @@ public class Enchere
    @Override
     public String toString()
     {
-        return this.art + " : " + this.prix + " pour " + this.enchereur + ". Termine le " + this.date_fin;
+        return this.art + " : " + this.prix + "€ pour " + this.enchereur.getNom_per().toUpperCase() + " " + this.enchereur.getPrenom_per() + ". Termine le " + this.getDate_fin();
     }
    
    
@@ -168,6 +168,34 @@ public class Enchere
     }
     
     public static List<Enchere> getAllEncheres (Connection con) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( Statement st = con.createStatement()) 
+      {
+         try (ResultSet tlu = st.executeQuery("select * from encheres")) 
+         {
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+      }
+       
+       return Lench;
+    }
+    
+    public static List<Enchere> getAllEncheresInterf (Connection con) throws SQLException
     {
        List<Enchere> Lench = new ArrayList<>();
        
@@ -258,12 +286,52 @@ public class Enchere
         return null;
     }
     
+    public static Enchere TrouveEnchereId(Connection con, int id_ench) throws SQLException 
+    {
+        try ( PreparedStatement chercheId = con.prepareStatement(
+                "select * from encheres where id_ench = ?")) 
+        {
+            chercheId.setInt(1, id_ench);
+            ResultSet testId = chercheId.executeQuery();
+                        
+            if(testId.next())
+            {
+               int id_ache = testId.getInt(3);
+               double prx = testId.getDouble(4);
+               String dt = testId.getString(5);
+               
+               Article art = Article.TrouveArticle(con, id_ench);
+               Personne acheteur = Personne.TrouvePersonne(con, id_ache);
+               
+               Enchere ench = new Enchere(art, prx, dt, acheteur);
+               return ench;
+            }    
+        }
+        return null;
+    }
+    
     public int getIdEnchere(Connection con) throws SQLException
     {
       try ( PreparedStatement chercheId = con.prepareStatement(
                "select id_ench from encheres where id_art = ?")) 
       {
          chercheId.setInt(1, this.getArt().getIdArticle(con));
+         ResultSet testId = chercheId.executeQuery();
+        
+         if(testId.next())
+         {
+            return testId.getInt(1);
+         }    
+      }
+      return -1;
+    }
+    
+    public static int getIdEnchere(Connection con, int id_art) throws SQLException
+    {
+      try ( PreparedStatement chercheId = con.prepareStatement(
+               "select id_ench from encheres where id_art = ?")) 
+      {
+         chercheId.setInt(1, id_art);
          ResultSet testId = chercheId.executeQuery();
         
          if(testId.next())
@@ -630,7 +698,7 @@ public class Enchere
             var = Math.random()*Lper.size();
             a_per = Lper.get((int)var);
 
-            a_prix = 0.01 + Math.random()*1000;
+            a_prix = Lire.troncature(0.01 + Math.random()*1000, n);
             
             
             var = Math.random()*10;

@@ -6,7 +6,6 @@ package fr.insa.aymeric.enchere;
 
 import com.interf.application.Application;
 import fr.insa.aymeric.enchere.ressources.Lire;
-import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -400,7 +399,46 @@ public class Main
                }
                if(rep == 17)
                {
-                  Enchere.Encherir(con, 23, 7, 900);
+                  
+                  System.out.println("Affiche toutes les ecnhères :");
+                  
+                  List<Enchere> Lench = Enchere.getAllEncheres(con);
+                  List<InterfEnchere> Linterf = InterfEnchere.getAllEnchere(con, Lench);
+                  
+                  for(int i=0; i<Linterf.size(); i++)
+                  {
+                     if(Linterf.get(i).getId_acheteur() <=0)
+                     {
+                        System.out.println("Problème avec l'acheteur --> ench d'id" + Linterf.get(i).getId_ench());
+                     }
+                     else if(Linterf.get(i).getId_proprio() <=0)
+                     {
+                        System.out.println("Problème avec le proprio --> ench d'id" + Linterf.get(i).getId_ench());
+                     }
+                     else
+                     {
+                        System.out.println(Lench.get(i));
+                        
+                        //System.out.println(Linterf.get(i).getId_proprio() + " " + Linterf.get(i).getId_acheteur() + " " + Linterf.get(i).getId_ench());
+                        System.out.println(Linterf.get(i).toString(con));
+                     }
+                  }
+                  
+                  /*Enchere ench = Enchere.TrouveEnchereId(con, 4);
+                  System.out.println(ench);
+                  Personne per = ench.getArt().getPer_art();
+                  System.out.println(per);*/
+               }
+               if(rep == 18)
+               {
+                  List<Personne> Lper = Personne.getAllPersonne(con);
+                  String nom;
+                  
+                  for(int i=0; i<Lper.size(); i++)
+                  {
+                     nom = Lper.get(i).getNom_per();
+                     Personne.updateNom(con, Lper.get(i).getIdPersonne(con), nom);
+                  }
                }
             } 
             catch (SQLException ex) 

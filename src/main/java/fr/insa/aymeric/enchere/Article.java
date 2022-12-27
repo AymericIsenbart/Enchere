@@ -92,7 +92,7 @@ public class Article
    @Override
     public String toString()
     {
-        return this.cat + " : " + this.nom_art + " : " + this.desc_art + ". Appartient à : " + this.per_art;
+        return this.cat + " : " + this.nom_art + " : " + this.desc_art + ". (De : " + this.per_art.getNom_per() + " " + this.per_art.getPrenom_per() + ")";
     }
    
    
@@ -138,6 +138,48 @@ public class Article
               // nothing to do : maybe the table was not created
           }
       }
+   }
+   
+   public static void updateCat(Connection con, int id_art, String cat) throws SQLException
+   {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update articles
+            set cat=?
+            where id_art=?"""))
+       {
+          pst.setString(1, cat);
+          pst.setInt(2, id_art);
+          
+          pst.executeUpdate();
+       }
+   }
+   
+   public static void updateNom(Connection con, int id_art, String nom) throws SQLException
+   {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update articles
+            set nom_art=?
+            where id_art=?"""))
+       {
+          pst.setString(1, nom);
+          pst.setInt(2, id_art);
+          
+          pst.executeUpdate();
+       }
+   }
+   
+   public static void updateDesc(Connection con, int id_art, String desc) throws SQLException
+   {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update articles
+            set desc_art=?
+            where id_art=?"""))
+       {
+          pst.setString(1, desc);
+          pst.setInt(2, id_art);
+          
+          pst.executeUpdate();
+       }
    }
    
    public static void AfficheArticles(Connection con) throws SQLException 
@@ -323,7 +365,24 @@ public class Article
             return test.getInt(1);
          }    
        }
-       return 0;
+       return -1;
+   }
+   
+   public static int getIdArticle(Connection con, int id_proprio, String nom_art) throws SQLException 
+   {
+       try ( PreparedStatement chercheCondition = con.prepareStatement(
+               "select id_art from articles where (nom_art=?) and (id_proprietaire=?)")) 
+       {
+         chercheCondition.setString(1, nom_art);
+         chercheCondition.setInt(2, id_proprio);
+         ResultSet test = chercheCondition.executeQuery();
+        
+         if(test.next())
+         {
+            return test.getInt(1);
+         }    
+       }
+       return -1;
    }
    
    public static List<Article> ListArticleAlea(Connection con, int n) throws SQLException

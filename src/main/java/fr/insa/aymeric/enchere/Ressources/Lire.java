@@ -585,5 +585,33 @@ public class Lire
 
         return resultat;
     } // fin de String separer(int nombre)
+    
+    public static double troncature(double nb, int nb_dec) // tronque un double à la bonne décimale
+    {
+       String tst = String.valueOf(nb);
+       
+       int index=0;
+       while(tst.charAt(index) != '.')
+       {
+          index++;
+       }
+       index++;
+       //System.out.println(index);
+       
+       if(tst.length() - nb_dec > index)
+       {
+          tst = tst.substring(0, index+nb_dec);
+          return Double.parseDouble(tst);
+       }
+       else
+       {
+          return nb;
+       }
+       
+       
+    }
+    
+    
+    
 }
 

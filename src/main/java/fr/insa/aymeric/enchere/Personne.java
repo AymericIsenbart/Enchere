@@ -28,9 +28,9 @@ public class Personne
    
    public Personne(String nom_per, String prenom_per, String email, String codePost, String mdp, boolean admin)
    {
-      this.nom_per = nom_per;
+      this.nom_per = nom_per.toUpperCase();
       this.prenom_per = prenom_per;
-      this.email = email;
+      this.email = email.toLowerCase();
       this.codePost = codePost;
       this.mdp = mdp;
       this.admin = admin;
@@ -38,9 +38,9 @@ public class Personne
    
    public Personne(String nom_per, String prenom_per, String email, String codePost, String mdp)
    {
-      this.nom_per = nom_per;
+      this.nom_per = nom_per.toUpperCase();
       this.prenom_per = prenom_per;
-      this.email = email;
+      this.email = email.toLowerCase();
       this.codePost = codePost;
       this.mdp = mdp;
       this.admin = false;
@@ -133,41 +133,102 @@ public class Personne
     {
       try ( Statement st = con.createStatement()) 
       {
-          // pour être sûr de pouvoir supprimer, il faut d'abord supprimer les liens
-          // puis les tables
-          // suppression des liens
-          /*try 
+          try 
           {
-              st.executeUpdate(
-                      """
-                  alter table aime
-                      drop constraint fk_aime_u1
-                           """);
-              System.out.println("constraint fk_aime_u1 dropped");
-          } catch (SQLException ex) {
-              // nothing to do : maybe the constraint was not created
-          }
-          try {
-              st.executeUpdate(
-                      """
-                  alter table aime
-                      drop constraint fk_aime_u2
-                  """);
-              System.out.println("constraint fk_aime_u2 dropped");
-          } catch (SQLException ex) {
-              // nothing to do : maybe the constraint was not created
-          }*/
-          // je peux maintenant supprimer les tables
-          try {
               st.executeUpdate(
                       """
                   drop table Personnes
                   """);
-          } catch (SQLException ex) {
+          }
+          catch (SQLException ex) {
               // nothing to do : maybe the table was not created
           }
       }
    }
+    
+    public static void updateNom(Connection con, int id_per, String nom) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set nom_perso=?
+            where id_per=?"""))
+       {
+          pst.setString(1, nom.toUpperCase());
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updatePrenom(Connection con, int id_per, String prenom) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set prenom=?
+            where id_per=?"""))
+       {
+          pst.setString(1, prenom);
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updateEmail(Connection con, int id_per, String email) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set email=?
+            where id_per=?"""))
+       {
+          pst.setString(1, email.toLowerCase());
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updateCP(Connection con, int id_per, String CP) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set codepost=?
+            where id_per=?"""))
+       {
+          pst.setString(1, CP);
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updateMdp(Connection con, int id_per, String mdp) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set mdp=?
+            where id_per=?"""))
+       {
+          pst.setString(1, mdp);
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void updateAdmin(Connection con, int id_per, boolean admin) throws SQLException
+    {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update personnes
+            set statut=?
+            where id_per=?"""))
+       {
+          pst.setBoolean(1, admin);
+          pst.setInt(2, id_per);
+          
+          pst.executeUpdate();
+       }
+    }
     
     // exemple de requete à la base de donnée
     public static void AffichePersonnes(Connection con) throws SQLException {
@@ -329,7 +390,23 @@ public class Personne
             return testEmail.getInt(1);
          }    
        }
-       return 0;
+       return -1;
+   }
+   
+   public static int getIdPersonne(Connection con, String email) throws SQLException 
+   {
+       try ( PreparedStatement chercheEmail = con.prepareStatement(
+               "select * from personnes where email = ?")) 
+       {
+         chercheEmail.setString(1, email);
+         ResultSet testEmail = chercheEmail.executeQuery();
+        
+         if(testEmail.next())
+         {
+            return testEmail.getInt(1);
+         }    
+       }
+       return -1;
    }
    
    public static List<Personne> getAllPersonne(Connection con) throws SQLException
@@ -398,7 +475,7 @@ public class Personne
       for (int i=0; i<n; i++)
       {
          var = Math.random()*prenom.length;
-         Pnom = nom[(int)var];
+         Pnom = nom[(int)var].toUpperCase();
          
          var = Math.random()*nom.length;
          Ppnom = prenom[(int)var];
@@ -409,13 +486,17 @@ public class Personne
          
          
          var =  Math.random()*99999;
+         while(var/1000 < 10)
+         {
+            var = 10*var;
+         }
          codepost = (int)var;
          var = Math.random()*CP.length;
          CPp = CP[(int)var] + "-" + codepost;
          
          var = Math.random()*adress.length;
          Padr = adress[(int)var];
-         email = Pnom + "." + Ppnom + "@" + Padr + "." + CPp.charAt(0) + CPp.charAt(1); 
+         email = Pnom + "." + Ppnom + "@" + Padr + "." + CPp.substring(0,2).toLowerCase(); 
          
          people[i] = new Personne(Pnom, Ppnom, email, CPp, Mdp);
          System.out.println(people[i]);
