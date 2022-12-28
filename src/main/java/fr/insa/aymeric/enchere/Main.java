@@ -218,9 +218,8 @@ public class Main
                         for(int i=0; i<Lart.size(); i++)
                         {
                            Article.creerArticle(con, Lart.get(i));
+                           System.out.println(Lart.get(i));
                         }
-
-                        
                      }
                      else if(auto == 2)
                      {
@@ -351,17 +350,29 @@ public class Main
                   Enchere.AfficheArticlesEncheres(con);
                   
                   int id_art = Lire.i();
+                  if(id_art <= 0)
+                  {
+                     break;
+                  }
                   
                   System.out.println("Quel prix ?");
                   double prx = Lire.d();
+                  if(prx <= 0)
+                  {
+                     break;
+                  }
                   
                   Personne.AffichePersonnes(con);
                   System.out.println("Quelle personne ? (id)");
                   int id_ach = Lire.i();
+                  if(id_ach <= 0)
+                  {
+                     break;
+                  }
                   
                   Personne acheteur = Personne.TrouvePersonne(con, id_ach);
-                  
                   System.out.println("Acheteur : " + acheteur);
+                  
                   Enchere ench = Enchere.TrouveEnchere(con, id_art);
                   
                   Enchere.Encherir(con, ench, acheteur, prx);
@@ -431,14 +442,7 @@ public class Main
                }
                if(rep == 18)
                {
-                  List<Personne> Lper = Personne.getAllPersonne(con);
-                  String nom;
-                  
-                  for(int i=0; i<Lper.size(); i++)
-                  {
-                     nom = Lper.get(i).getNom_per();
-                     Personne.updateNom(con, Lper.get(i).getIdPersonne(con), nom);
-                  }
+                   Personne.SupprimePersonne(con, 41);
                }
             } 
             catch (SQLException ex) 

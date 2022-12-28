@@ -30,7 +30,7 @@ public class Article
       this.nom_art = nom_art;
       this.desc_art = desc_art;
       this.per_art = perso;
-      this.cat = cat;
+      this.cat = cat.toUpperCase();
    }
 
    /**
@@ -184,33 +184,15 @@ public class Article
    
    public static void AfficheArticles(Connection con) throws SQLException 
    {
+      List<Article> Lart = getAllArticle(con);
+      
       System.out.println("");
-        try ( Statement st = con.createStatement()) {
-            try ( ResultSet tlu = st.executeQuery("select * from articles")) {
-                while (tlu.next()) {
-                    // Ensuite, pour accéder à chaque colonne de la ligne courante,
-                    // on a les méthode getInt, getString... en fonction du type
-                    // de la colonne.
-
-                    // on peut accéder à une colonne par son nom :
-                    int id = tlu.getInt("id_art");
-                    // ou par son numéro (la première colonne a le numéro 1)
-                    
-                    int idArt = tlu.getInt(1);
-                    
-                    int idPer = tlu.getInt(2);
-                    String nom = tlu.getString(3);
-                    String desc = tlu.getString(4);
-                    String cat = tlu.getString(5);
-                    
-                    Personne perso = Personne.TrouvePersonne(con, idPer);
-                    Article art = new Article(nom, desc, perso, cat);
-                    
-                    System.out.println(idArt + " : " + art);
-                }
-            }
-        }
-        System.out.println("");
+      for(int i=0; i<Lart.size(); i++)
+      {
+         System.out.println(Lart.get(i));
+      }
+      
+      System.out.println("");
     }
    
     public static Article TrouveArticle(Connection con, int id) throws SQLException 
@@ -282,8 +264,7 @@ public class Article
    public static void creerArticle(Connection con, Article art)
             throws SQLException
     {
-        // je me place dans une transaction pour m'assurer que la séquence
-        // test du nom - création est bien atomique et isolée
+        
         con.setAutoCommit(false);
                         
         try (PreparedStatement pst = con.prepareStatement(
@@ -338,7 +319,10 @@ public class Article
    
    public static void SupprimeArticle(Connection con, int idArt) throws SQLException 
     {
-      con.setAutoCommit(false);
+      Enchere.SupprimeEnchere(con, idArt); // Enlève l'article de la liste des enchères     
+       
+       
+      con.setAutoCommit(false); // Supprime l'article
       try ( PreparedStatement pst = con.prepareStatement(
                    "delete from articles where id_art = ?"))
       {
@@ -364,8 +348,12 @@ public class Article
          {
             return test.getInt(1);
          }    
+         else
+         {
+            return -1;
+         }
        }
-       return -1;
+       
    }
    
    public static int getIdArticle(Connection con, int id_proprio, String nom_art) throws SQLException 
@@ -380,9 +368,35 @@ public class Article
          if(test.next())
          {
             return test.getInt(1);
-         }    
+         }
+         else
+         {
+            return -1;
+         }
        }
-       return -1;
+       
+   }
+   
+   public static List<Article> getAllArticleProprio(Connection con, int id_proprio) throws SQLException
+   {
+      List<Article> Lart = new ArrayList<>();
+      int id_art;
+      
+      try(PreparedStatement pst = con.prepareStatement("""
+            select id_art from articles
+            where id_proprietaire=?"""))
+      {
+         pst.setInt(1, id_proprio);
+         ResultSet rst = pst.executeQuery();
+         
+         while(rst.next())
+         {
+            id_art = rst.getInt(1);
+            Lart.add(TrouveArticle(con, id_art));
+         }
+      }
+      
+      return Lart;
    }
    
    public static List<Article> ListArticleAlea(Connection con, int n) throws SQLException
@@ -391,9 +405,7 @@ public class Article
       String[] nom = {"Telephone", "Smartphone", "Casque chantier", "Classeur", "Machine à laver", "Lave vaisselle", "Chaine HI-FI", "Roman", "Bande dessinée", "Statuette", "Batte", "Chaussures à crampons", "Protèges tibia", "Lunette de vision nocturne", "Jumelles", "Poële", "Visseuse", "Burineur", "Ponceuse", "Tournevis", "Marteau", "Radiateur", "Cale porte", "Cadre photo", "Enceinte portable", "Vélo elliptique", "Meuble télé", "Armoire", "Manteau", "Robinet", "Chaise", "Imprimante", "DVD", "Chaussettes", "Tshirt", "Bonnet en laine", "Jeu de société", "Cartes de visite", "tondeuse à barbe", "tondeuse à gazon", "Rasoir", "Tronçonneuse", "Tracteur", "Fiat Multipla"};;
       
       List<Personne> Lper = Personne.getAllPersonne(con);
-      
       List<Article> Lart = new ArrayList<>();
-      
       
       int a_nm;
       int a_cat;

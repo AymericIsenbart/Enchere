@@ -264,9 +264,13 @@ public class Personne
 
                Personne perso = new Personne(nom, prenom, email, cp, mdp);
                return perso;
-            }    
+            }
+            else
+            {
+               return null;
+            }
         }
-        return null;
+        
     }
     
     public static class EmailExisteDeja extends Exception {
@@ -277,7 +281,7 @@ public class Personne
     // on va souvent avoir besoin de cet identificateur dans le programme,
     // par exemple pour gérer des liens "aime" entre utilisateur
     // vous trouverez ci-dessous la façon de récupérer les identificateurs
-    public static int NouvellePersonne(Connection con, Personne pers)
+    public static void NouvellePersonne(Connection con, Personne pers)
             throws SQLException, EmailExisteDeja
     {
         // je me place dans une transaction pour m'assurer que la séquence
@@ -316,79 +320,66 @@ public class Personne
          {
             con.setAutoCommit(true);
          }
-        
-        return 0;
     }
     
-    /*public static void SupprimePersonne(Connection con) throws SQLException 
+    public static void SupprimePersonne(Connection con, int id_per) throws SQLException
     {
-       System.out.println("Afficher les personnes ? oui -> 1");
-       int rst = Lire.i();
+       System.out.println("Personne : " + TrouvePersonne(con, id_per));
        
-       if(rst == 1)
+       // Supprime les mises de la personne
+       
+       System.out.println("Encheres Misées");
+       List<Enchere> LenchMise = Enchere.getAllMisePersonne(con, id_per);
+       for(int i=0; i<LenchMise.size(); i++)
        {
-          AffichePersonnes(con);
-          System.out.println("");
+          System.out.println(LenchMise.get(i));
        }
        
-       System.out.println("Qui supprimer ? id :");
-       int id = Lire.i();
+       Enchere.SupprimeAllMisePersonne(con, id_per);
+       System.out.println("* Encheres remises à neuf");
        
-       
-      // On supprime toutes les enchères où l'utilisateur est propriétaire
-      con.setAutoCommit(false);
-      try ( PreparedStatement pst = con.prepareStatement(
-                    "Select id_art from articles where id_proprietaire=?"))
-      {
-         pst.setInt(1, id);
-         ResultSet rs = pst.executeQuery();
-         
-         int idArt;
-         
-         while(rs.next())
-         {
-            idArt = rs.getInt(1); 
-            
-            try (PreparedStatement pst2 = con.prepareStatement(
-            "Delete from encheres where id_art=?"))
-            {
-               pst2.setInt(1, idArt);
-               pst2.execute();
-            }
-         }
-      }
-      finally 
-      {
-          con.setAutoCommit(true);
-      }
-       
-       
-
-       con.setAutoCommit(false);
-       try ( PreparedStatement pst = con.prepareStatement(
-                    "delete from personnes where id = ?"))
+       System.out.println("Encheres possédées");
+       List<Enchere> Lench = Enchere.GetProprioEnchere(con, id_per);
+       for(int i=0; i<Lench.size(); i++)
        {
-                pst.setInt(1, id);
-                pst.executeUpdate();
-            }
-      finally 
-      {
-          con.setAutoCommit(true);
-      }
-    }*/
+          System.out.println(Lench.get(i));
+       }
+       
+       
+       // Retire tous les articles que possède cette personne
+       System.out.println("Articles");
+       List<Article> Lart = Article.getAllArticleProprio(con, id_per);
+       for(int i=0; i<Lart.size(); i++)
+       {
+          System.out.println(Lart.get(i).getIdArticle(con));
+          Article.SupprimeArticle(con, Lart.get(i).getIdArticle(con));
+       }
+       System.out.println("Articles supprimés (avec les enchères)");
+
+       // Supprime la personne
+       System.out.println("Supprime la personne");
+       try ( PreparedStatement pst = con.prepareStatement(
+                    "delete from personnes where id_per = ?"))
+       {
+         pst.setInt(1, id_per);
+         pst.executeUpdate();
+       }
+       System.out.println("* Personne supprimée");
+    }
    
    public int getIdPersonne(Connection con) throws SQLException 
    {
        try ( PreparedStatement chercheEmail = con.prepareStatement(
-               "select * from personnes where email = ?")) 
+               "select id_per from personnes where email = ?")) 
        {
-         chercheEmail.setString(1, this.getEmail());
+         chercheEmail.setString(1, this.getEmail().toLowerCase());
          ResultSet testEmail = chercheEmail.executeQuery();
         
+         
          if(testEmail.next())
          {
             return testEmail.getInt(1);
-         }    
+         }   
        }
        return -1;
    }
@@ -398,7 +389,7 @@ public class Personne
        try ( PreparedStatement chercheEmail = con.prepareStatement(
                "select * from personnes where email = ?")) 
        {
-         chercheEmail.setString(1, email);
+         chercheEmail.setString(1, email.toLowerCase());
          ResultSet testEmail = chercheEmail.executeQuery();
         
          if(testEmail.next())
@@ -436,7 +427,7 @@ public class Personne
             }
          }
      }
-      return Lpers;
+     return Lpers;
    }
    
    public void MiseEnEnchere(Connection con) throws SQLException 
@@ -501,8 +492,6 @@ public class Personne
          people[i] = new Personne(Pnom, Ppnom, email, CPp, Mdp);
          System.out.println(people[i]);
       }
-      
-      
       
       return people;
       
