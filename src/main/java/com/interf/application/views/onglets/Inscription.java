@@ -88,7 +88,7 @@ public class Inscription extends VerticalLayout {
         delete.getStyle().set("margin-inline-end", "auto");
 
         Button cancel = new Button("Annuler");
-        cancel.addClickListener(e->UI.getCurrent().navigate(LoginView.class));
+        cancel.addClickListener(e->UI.getCurrent().navigate(Login.class));
         Button createAccount = new Button("Créer");
         createAccount.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         createAccount.addClickListener((event) -> {

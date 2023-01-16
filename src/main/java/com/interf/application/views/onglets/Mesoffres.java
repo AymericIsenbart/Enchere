@@ -44,7 +44,7 @@ public class Mesoffres extends VerticalLayout{
    public Mesoffres() {
         try {
         Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
-        int id_proprio = Session. getId_session();
+        int id_proprio = Session.getId_session();
         List<Enchere> enche =  Enchere.getMesoffres(con, id_proprio);   
       
         ComponentRenderer <Component, Enchere> personCardRenderer = new ComponentRenderer<>(
