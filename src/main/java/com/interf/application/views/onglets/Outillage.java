@@ -5,7 +5,6 @@
 package com.interf.application.views.onglets;
 
 import com.interf.application.viewppl.MainLayout;
-import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -21,6 +20,7 @@ import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.virtuallist.VirtualList;
 import com.vaadin.flow.data.renderer.ComponentRenderer;
 import com.vaadin.flow.dom.ElementFactory;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import fr.insa.aymeric.enchere.Enchere;
 import fr.insa.aymeric.enchere.Main;
@@ -32,22 +32,22 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.security.PermitAll;
+
 /**
  *
  * @author Xavier Weissenberger
  */
-@Route(value = "Cuisine", layout = MainLayout.class)
+@Route(value = "Outillage", layout = MainLayout.class)
 
 /*on met un titre à notre page*/
-@PageTitle("Cuisine")
+@PageTitle("Outillage")
 @PermitAll
-public class Cuisine extends VerticalLayout {
-    
-    public Cuisine() {
+public class Outillage extends VerticalLayout{
+    public Outillage() {
         try {
         Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
         int id_proprio = Session. getId_session();
-        List<Enchere> enche =  Enchere.getEnchereCat(con, "CUISINE");   
+        List<Enchere> enche =  Enchere.getEnchereCat(con, "OUTILLAGE");   
       
         ComponentRenderer <Component, Enchere> personCardRenderer = new ComponentRenderer<>(
             enchere -> {
@@ -127,5 +127,4 @@ public class Cuisine extends VerticalLayout {
             Logger.getLogger(Cuisine.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
 }

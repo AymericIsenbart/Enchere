@@ -4,7 +4,6 @@
  */
 package fr.insa.aymeric.enchere;
 
-import static fr.insa.aymeric.enchere.Personne.AffichePersonnes;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -113,7 +112,7 @@ public class Article
                         id_proprietaire integer not null,
                         nom_art varchar(60) not null,
                         desc_art varchar(600),
-                        cat varchar(2)
+                        cat varchar(20)
                     )
                     """);
         }
@@ -432,5 +431,85 @@ public class Article
       }
       return Lart;
    }
+   
+   public static List<Article> getArticleCat(Connection con, String cat) throws SQLException
+    {
+      List<Article> Lart = new ArrayList<>();
+       
+      String nom;
+      String desc;
+      int id_proprio;
+       
+      try(PreparedStatement pst = con.prepareStatement(
+                        """
+                        select * from articles
+                        where cat = ?
+                        """
+                )){
+                    pst.setString(6, cat);
+                    ResultSet tlu= pst.executeQuery();
+                    
+            while(tlu.next())
+            {
+               nom = tlu.getString(3);
+               desc = tlu.getString(4);
+               id_proprio = tlu.getInt(2);
+               
+               Lart.add(new Article(nom, desc, Personne.TrouvePersonne(con, id_proprio), cat));               
+            }
+         }
       
+      return Lart;
+       
+    }
+     
+   public static List<Article> getAllArticleSaufProprio(Connection con, int id_proprio) throws SQLException
+   {
+      List<Article> Lart = new ArrayList<>();
+      int id_art;
+      
+      try(PreparedStatement pst = con.prepareStatement("""
+            select id_art from articles
+            where id_proprietaire!=?"""))
+      {
+         pst.setInt(1, id_proprio);
+         ResultSet rst = pst.executeQuery();
+         
+         while(rst.next())
+         {
+            id_art = rst.getInt(1);
+            Lart.add(TrouveArticle(con, id_art));
+         }
+      }
+      
+      return Lart;
+   }
+   
+   public static List<Article> getAllArticleSaufVendus(Connection con, int id_proprio) throws SQLException
+   {
+      List<Article> Lart = new ArrayList<>();
+      int id_art;
+      
+      try(PreparedStatement pst = con.prepareStatement("""
+            select id_art from articles
+            where id_proprietaire=? and not exists (
+                select id_art 
+                    from encheres
+                        join articles
+                            on encheres.id_art=articles.id_art)
+                                                     
+            """))
+      {
+         pst.setInt(1, id_proprio);
+         ResultSet rst = pst.executeQuery();
+         
+         while(rst.next())
+         {
+            id_art = rst.getInt(1);
+            Lart.add(TrouveArticle(con, id_art));
+         }
+      }
+      
+      return Lart;
+   }
 }

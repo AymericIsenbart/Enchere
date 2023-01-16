@@ -6,9 +6,9 @@
 package fr.insa.aymeric.enchere;
 
 
+import static fr.insa.aymeric.enchere.Article.TrouveArticle;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -76,6 +76,10 @@ public class Enchere
     */
    public double getPrix() {
       return prix;
+   }
+   
+   public String getPrixString() {
+      return String.format("%f", prix, 2);
    }
 
    /**
@@ -468,7 +472,7 @@ public class Enchere
     {
        try(PreparedStatement pst = con.prepareStatement("""
             Update encheres
-            set date_fin=?
+            set date_fin=to_date(?,'YYYYMMDD')
             where id_ench=?"""))
        {
           pst.setString(1, date);
@@ -743,4 +747,181 @@ public class Enchere
       }
       return Lench;
    }
+  
+  public static List<Enchere> getEncheresSaufProprio(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                 join articles 
+                    on encheres.id_art=articles.id_art
+                        where id_proprietaire!=? 
+                 """
+       ))
+      {
+         pst.setInt(1, id_proprio);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  public static List<Enchere> getMesoffres(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                        where id_acheteur=? 
+                 """
+       ))
+      {
+         pst.setInt(1, id_proprio);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  
+  public static List<Enchere> getMesEncheres(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                    join articles
+                    on encheres.id_art=articles.id_art
+                        where id_proprietaire=? 
+                 """
+       ))
+      {
+         pst.setInt(1, id_proprio);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  
+  public static List<Enchere> getRecherche(Connection con, String mot) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                    join articles
+                    on encheres.id_art=articles.id_art
+                        where nom_art like ? 
+                 """
+       ))
+      {
+         pst.setString(1, mot);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  
+  public static List<Enchere> getEnchereCat(Connection con, String mot) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                    join articles
+                    on encheres.id_art=articles.id_art
+                        where cat like ? 
+                 """
+       ))
+      {
+         pst.setString(1, mot);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
 }

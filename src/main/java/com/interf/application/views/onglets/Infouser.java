@@ -4,13 +4,12 @@
  */
 package com.interf.application.views.onglets;
 
+import com.interf.application.viewppl.MainLayout;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.EmailField;
@@ -20,46 +19,50 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import fr.insa.aymeric.enchere.Main;
 import fr.insa.aymeric.enchere.Personne;
+import static fr.insa.aymeric.enchere.Personne.TrouvePersonne;
+import static fr.insa.aymeric.enchere.Personne.getIdPersonne;
+import fr.insa.aymeric.enchere.Session;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.security.PermitAll;
-import org.springframework.context.annotation.Configuration;
 
 /**
  *
  * @author Xavier Weissenberger
  */
-/*on ne la met pas dans le MainLayout car on ne veut pas qu'elle y apparaisse*/ 
-@Route(value = "Inscription")
-/*tout le monde peut accéder à la page*/
-
-@PageTitle("S'inscrire")
-@Configuration
+@Route(value = "Infos", layout = MainLayout.class)
+@PageTitle("Informations personnelles")
 @PermitAll
-public class Inscription extends VerticalLayout {
- 
-    public Inscription() {
+
+public class Infouser extends VerticalLayout {
+    
+    public Infouser() throws ClassNotFoundException, SQLException{
         
-        /*on setup la page pour que les composants soient bien centrés*/
         setSizeFull(); 
         setAlignItems(Alignment.CENTER);
 	setJustifyContentMode(JustifyContentMode.CENTER);
         
-        /*on crée les champs à la manière de la classe Ajouter*/
-        TextField prenom = new TextField("Prénom");
+        int id_user = Session.getId_session();
+        Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
+        
+        Personne person = TrouvePersonne(con, id_user);
+        TextField prenom = new TextField("Prénom");                    
         prenom.setRequiredIndicatorVisible(true);
+        prenom.setValue(person.getPrenom_per());
         prenom.setErrorMessage("Ce champ est requis");
         prenom.setClearButtonVisible(true);
         
         TextField nom = new TextField("Nom");
         nom.setRequiredIndicatorVisible(true);
+        nom.setValue(person.getNom_per());
         nom.setErrorMessage("Ce champ est requis");
         nom.setClearButtonVisible(true);
         
         EmailField Email = new EmailField();
         Email.setLabel("Adresse Email");
+        Email.setValue(person.getEmail());
         Email.getElement().setAttribute("name", "email");
         Email.setRequiredIndicatorVisible(true);
         Email.setErrorMessage("Enter a valid email address");
@@ -68,65 +71,52 @@ public class Inscription extends VerticalLayout {
         TextField codepost = new TextField();
         codepost.setLabel("Code postal");
         codepost.setRequiredIndicatorVisible(true);
+        codepost.setValue(person.getCodePost());
         codepost.setErrorMessage("Ce champ est requis");
         codepost.setClearButtonVisible(true);
         
         PasswordField mdp1 = new PasswordField();
         mdp1.setLabel("Mot de passe");
-        mdp1.setValue("");
+        mdp1.setValue(person.getMdp());
         mdp1.setRequiredIndicatorVisible(true);
         mdp1.setErrorMessage("Ce champ est requis");
         
         PasswordField mdp2 = new PasswordField();
         mdp2.setLabel("Vérifier le mot de passe");
-        mdp2.setValue("");
+        mdp2.setValue(person.getMdp());
         mdp2.setRequiredIndicatorVisible(true);
         mdp2.setErrorMessage("Ce champ est requis");
         
-        Button delete = new Button("Supprimer");
-        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        delete.getStyle().set("margin-inline-end", "auto");
-
         Button cancel = new Button("Annuler");
-        cancel.addClickListener(e->UI.getCurrent().navigate(LoginView.class));
-        Button createAccount = new Button("Créer");
-        createAccount.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        createAccount.addClickListener((event) -> {
-            String nom_per = nom.getValue();
-            String prenom_per = prenom.getValue();
-            String email = Email.getValue();
-            String codePost = codepost.getValue();
-            String mdp = mdp1.getValue();
-            
-            try {
-            Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
-            Personne pers = new Personne(nom_per, prenom_per, email,  codePost, mdp);
-            Personne.NouvellePersonne(con, pers);
-            Notification.show("Utilisateur " + nom_per + " créé");
-            UI.getCurrent().navigate(Login.class);
-            }
-            catch (SQLException ex) {
-                 Notification.show("Problème BdD : " + ex.getLocalizedMessage());
-            }
-            catch (Personne.EmailExisteDeja ex) {
-                 Notification.show("Cet email existe déjà, choississez en un autre");
-                 
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(Inscription.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-        });
-        createAccount.addClickShortcut(Key.ENTER);
-        HorizontalLayout buttonLayout = new HorizontalLayout(delete, cancel,
-                createAccount);
-        buttonLayout.getStyle().set("flex-wrap", "wrap");
-        buttonLayout.setJustifyContentMode(JustifyContentMode.END);
+        cancel.addClickListener(e->UI.getCurrent().navigate(Accueil.class));
+        cancel.addThemeVariants(ButtonVariant.LUMO_ERROR);  
         
-        Checkbox checkbox = new Checkbox();
-        checkbox.setLabel("J'accepte les conditions d'utilisation");
+        Button saveButton; 
         
+                    saveButton = new Button("Valider", (event) -> { 
+                    try{
+                    String email=person.getEmail();
+                    int id;
+                    id = getIdPersonne(con, email);
+                    
+                    person.updateNom(con, id, nom.getValue());
+                    person.updatePrenom(con, id, prenom.getValue());
+                    person.updateEmail(con, id, Email.getValue());
+                    person.updateMdp(con, id, mdp1.getValue());
+                    person.updateCP(con, id, codepost.getValue());
+                    UI.getCurrent().navigate(Accueil.class);
+                    
+                    } catch (SQLException ex) {
+                        Logger.getLogger(Cuisine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY); 
+        saveButton.addClickShortcut(Key.ENTER);
         HorizontalLayout noms = new HorizontalLayout();
         noms.add(prenom, nom);
+        
+        HorizontalLayout buttonLayout = new HorizontalLayout();
+        buttonLayout.add(cancel, saveButton);
         
         HorizontalLayout infos = new HorizontalLayout();
         infos.add(codepost, Email);
@@ -134,6 +124,6 @@ public class Inscription extends VerticalLayout {
         HorizontalLayout mdp = new HorizontalLayout();
         mdp.add(mdp1, mdp2);
         
-        add(new H1("INSCRIPTION"), noms, infos, mdp, checkbox, buttonLayout);   
-    }
+        add(noms, infos, mdp, buttonLayout);
+}
 }

@@ -33,7 +33,7 @@ public class SecurityConfig extends VaadinWebSecurity {
     private static class SimpleInMemoryUserDetailsManager extends InMemoryUserDetailsManager {
         public SimpleInMemoryUserDetailsManager() {
             createUser(new User("user",
-                "{noop}userpass",
+               "{noop}userpass",
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
             ));
             createUser(new User("admin",
@@ -53,7 +53,7 @@ public class SecurityConfig extends VaadinWebSecurity {
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService() {
+    public static InMemoryUserDetailsManager userDetailsService() {
         return new SimpleInMemoryUserDetailsManager(); 
     }
 }

@@ -5,11 +5,14 @@
 package com.interf.application.views.onglets;
 
 import com.interf.application.viewppl.MainLayout;
+import com.vaadin.flow.component.Key;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -21,8 +24,18 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
+import fr.insa.aymeric.enchere.Article;
+import fr.insa.aymeric.enchere.Enchere;
+import fr.insa.aymeric.enchere.Main;
+import fr.insa.aymeric.enchere.Personne;
+import fr.insa.aymeric.enchere.Session;
 import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.security.PermitAll;
 
 /**
@@ -31,12 +44,10 @@ import javax.annotation.security.PermitAll;
  */
 /*ici on crée la route vers la calsse MainLayout afin que notre onglet aparaisse dans la vue principale*/
 @Route(value = "Ajouter", layout = MainLayout.class)
-@RouteAlias(value = "Ajouter", layout = MainLayout.class)
-/*on autorise tout le monde à accéder à la page*/
-@PermitAll
+
 /*on met un titre à notre page*/
 @PageTitle("Ajouter une enchère")
-
+@PermitAll
 public class Ajouter extends VerticalLayout {
     public Ajouter(){
         
@@ -49,43 +60,9 @@ public class Ajouter extends VerticalLayout {
         /*on ajoute ici un bouton pour effacer ce qui est écrit dans le champ*/
         
         /*on le refait pour chaque élément nécessaire*/
-        
-        TextField prenom = new TextField("Prénom");
-        prenom.setRequiredIndicatorVisible(true);
-        prenom.setErrorMessage("Ce champ est requis");
-        prenom.setClearButtonVisible(true);
-        
-        TextField nom = new TextField("Nom");
-        nom.setRequiredIndicatorVisible(true);
-        nom.setErrorMessage("Ce champ est requis");
+   
        
-        TextField adresse = new TextField("Numéro et rue");
-        adresse.setRequiredIndicatorVisible(true);
-        adresse.setErrorMessage("Ce champ est requis");
-        adresse.setClearButtonVisible(true);
-        
-        TextField ville = new TextField("Ville");
-        ville.setRequiredIndicatorVisible(true);
-        ville.setErrorMessage("Ce champ est requis");
-        ville.setClearButtonVisible(true);
-        
-        /*ici le champs n'accepte que les numéros*/
-        NumberField dep = new NumberField();
-        dep.setLabel("Code postal");
-        dep.setRequiredIndicatorVisible(true);
-        dep.setErrorMessage("Ce champ est requis");
-        dep.setClearButtonVisible(true);
-        
-        /*On ajoute ici un champ permettant de sélection facilement un date*/
-        DatePicker datedebut = new DatePicker("Début de l'enchère");
-        datedebut.setRequiredIndicatorVisible(true);
-        datedebut.setErrorMessage("Ce champ est requis");
-        
-        
-        DatePicker datefin = new DatePicker("Fin de l'enchère");
-        datefin.setRequiredIndicatorVisible(true);
-        datefin.setErrorMessage("Ce champ est requis");
-        
+      
         /*il s'agit ici d'un champs spécial qui va nous permettre de savoir si l'adresse mail existe ou non*/
         EmailField Email = new EmailField();
         Email.setLabel("Adresse Email");
@@ -93,29 +70,24 @@ public class Ajouter extends VerticalLayout {
         Email.setErrorMessage("Enter a valid email address");
         Email.setClearButtonVisible(true);
         
-        TextField num = new TextField();
-        num.setLabel("Numéro de téléphone");
-        num.setHelperText("Inclure les préfixes de pays");
-        num.setRequiredIndicatorVisible(true);
-        num.setErrorMessage("Ce champ est requis");
-        num.setClearButtonVisible(true);
+        
         
         /*ce champ est une liste dans laquelle on pour sélectionner la catégorie de notre enchère*/
         Select<String> select = new Select<>();
         select.setLabel("Catégorie");
-        select.setItems("Cuisine", "Habits", "Outillage", "Vélos", "Voitures");
+        select.setItems("Cuisine", "Habits", "Outillage","Voitures");
         select.setEmptySelectionAllowed(true);
         
         /*on aligne ici les boutons que l'on veut les uns à coté des autres*/
-        HorizontalLayout noms = new HorizontalLayout();
+        /*HorizontalLayout noms = new HorizontalLayout();
         noms.add(prenom, nom);
         nom.setClearButtonVisible(true);
         HorizontalLayout dates = new HorizontalLayout();
         dates.add(datedebut, datefin); 
-        HorizontalLayout infos = new HorizontalLayout();
+        /*HorizontalLayout infos = new HorizontalLayout();
         infos.add(num, Email);
         HorizontalLayout adress = new HorizontalLayout();
-        adress.add(adresse, ville, dep);
+        adress.add(adresse, ville, dep);*/
         HorizontalLayout prod = new HorizontalLayout();
         prod.add(designation, select);
         
@@ -126,17 +98,42 @@ public class Ajouter extends VerticalLayout {
         textArea.setMaxHeight("150px");
         textArea.setLabel("Description");
         
-        /*on ajoute ensuite les boutons pour supprimer l'enchere, la créer ou annuler*/
-        Button delete = new Button("Supprimer");
-        delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        delete.getStyle().set("margin-inline-end", "auto");
-
+         
+        
+        
+        /*on ajoute ensuite les boutons pour créer ou annuler l'enchere */
+        
+       
         Button cancel = new Button("Annuler");
-
+        cancel.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        cancel.getStyle().set("margin-inline-end", "auto");
+        cancel.addClickListener(e->UI.getCurrent().navigate(Accueil.class));
+        
         Button createAccount = new Button("Créer");
         createAccount.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        HorizontalLayout buttonLayout = new HorizontalLayout(delete, cancel,
+        createAccount.addClickListener((event) -> {
+            String nom_art = designation.getValue();
+            String desc_art = textArea.getValue();
+            String cat = select.getValue();
+            
+            try{
+            Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
+            /*int id_proprio = Personne.getIdPersonne(con);*/
+            int id_proprio = Session.getId_session();
+            Personne pers = Personne.TrouvePersonne(con, id_proprio);
+            Article art = new Article(nom_art, desc_art, pers, cat);
+            Article.creerArticle(con, art); 
+            Notification.show("Article ajouté");
+            UI.getCurrent().navigate(Accueil.class);
+            }
+            catch (SQLException ex) {
+                 Notification.show("Problème BdD : " + ex.getLocalizedMessage());
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Inscription.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        });
+        createAccount.addClickShortcut(Key.ENTER);
+        HorizontalLayout buttonLayout = new HorizontalLayout(cancel,
                 createAccount);
         buttonLayout.getStyle().set("flex-wrap", "wrap");
         buttonLayout.setJustifyContentMode(JustifyContentMode.END);
@@ -144,16 +141,7 @@ public class Ajouter extends VerticalLayout {
         /*il s'agit ici d'une checkbox permettant d'accepter les conditions d'utilisation (il n'y a en pas c'est juste un plus)*/
         Checkbox checkbox = new Checkbox();
         checkbox.setLabel("J'accepte les conditions d'utilisation");
-        
-        /*ici on ajoute un champ avec un petit logo euro pour le prix*/
-        NumberField prix = new NumberField();
-        prix.setLabel("Prix");
-        Div euroSuffix = new Div();
-        euroSuffix.setText("€");
-        prix.setSuffixComponent(euroSuffix);
-        prix.setRequiredIndicatorVisible(true);
-        prix.setErrorMessage("Ce champ est requis");
-        
+ 
         /*il s'agit là d'une zone pour upload les photos du produit*/
         MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
         Upload upload = new Upload(buffer);
@@ -162,6 +150,6 @@ public class Ajouter extends VerticalLayout {
         InputStream inputStream = buffer.getInputStream(fileName);
         });
         /*enfin on ajoute tout sur la page*/       
-        add(prod, noms, infos, adress, dates, prix, textArea, upload, checkbox, buttonLayout);    
+        add(prod, textArea, upload, checkbox, buttonLayout);    
     }
 }
