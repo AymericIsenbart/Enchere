@@ -400,7 +400,7 @@ public class Article
    
    public static List<Article> ListArticleAlea(Connection con, int n) throws SQLException
    {
-      String[] cat = {"TE", "CU", "MA", "VE", "BR", "TR", "JE", "PU", "BE", "MU", "SP"};
+      String[] cat = {"Technologie", "Cuisine", "Maison", "Vetement", "Bricolage", "Transport", "Jeux", "Puericulture",  "Musique", "Sport"};
       String[] nom = {"Telephone", "Smartphone", "Casque chantier", "Classeur", "Machine à laver", "Lave vaisselle", "Chaine HI-FI", "Roman", "Bande dessinée", "Statuette", "Batte", "Chaussures à crampons", "Protèges tibia", "Lunette de vision nocturne", "Jumelles", "Poële", "Visseuse", "Burineur", "Ponceuse", "Tournevis", "Marteau", "Radiateur", "Cale porte", "Cadre photo", "Enceinte portable", "Vélo elliptique", "Meuble télé", "Armoire", "Manteau", "Robinet", "Chaise", "Imprimante", "DVD", "Chaussettes", "Tshirt", "Bonnet en laine", "Jeu de société", "Cartes de visite", "tondeuse à barbe", "tondeuse à gazon", "Rasoir", "Tronçonneuse", "Tracteur", "Fiat Multipla"};;
       
       List<Personne> Lper = Personne.getAllPersonne(con);
@@ -426,7 +426,7 @@ public class Article
          
          var = Math.random()*Lper.size();
          per = Lper.get((int)var);
-         
+        
          Lart.add(new Article(Anom, Anom, per, Acat));
       }
       return Lart;

@@ -5,6 +5,7 @@
 package fr.insa.aymeric.enchere;
 
 import com.interf.application.Application;
+import fr.insa.aymeric.enchere.Ressources.Utile;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.Date;
@@ -292,6 +293,10 @@ public class Main
                            int ans = Lire.i();
                            
                            List<Enchere> Lench = Enchere.ListEnchereAlea(con, ans);
+                           for(int i=0; i<Lench.size(); i++)
+                           {
+                               System.out.println(Lench.get(i));
+                           }
                            
                            for(int i=0; i<Lench.size(); i++)
                            {
@@ -303,10 +308,6 @@ public class Main
                      {
 
                      }
-                  }
-                  else if(rep == 7)
-                  {
-                     
                   }
                }
                
@@ -379,11 +380,14 @@ public class Main
                }
                if(rep == 8)
                {
+                  Enchere.AutoUpdateEnCours(con);
                   InterfaceGraphique(args);
                }
                
                if(rep == 9)
                {
+                   Enchere.AutoUpdateEnCours(con);
+                   
                   System.out.println("Modifier un paramètre dans quelle table ? Personne(0), Articles(1), Enchere(2)");
                   int ans = Lire.i();
                   
@@ -406,14 +410,14 @@ public class Main
                   else if(ans == 2)
                   {
                      System.out.println("Quelle enchère modifier ?");
+                     Enchere.AfficheEncheres(con);
                   }
+                  
+                  Enchere.AutoUpdateEnCours(con);
                }
                if(rep == 17)
                {
-                  List<Enchere> Lench = Enchere.getCatEnchere(con, "CU");
-                   System.out.println(Lench);
-                  
-                  
+                   System.out.println(Article.getAllArticle(con).size());
                }
                if(rep == 18)
                {

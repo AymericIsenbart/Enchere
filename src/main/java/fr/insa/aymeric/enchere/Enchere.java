@@ -7,6 +7,7 @@ package fr.insa.aymeric.enchere;
 
 
 import static fr.insa.aymeric.enchere.Article.TrouveArticle;
+import fr.insa.aymeric.enchere.Ressources.Utile;
 import fr.insa.aymeric.enchere.ressources.Lire;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +18,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 
 public class Enchere 
 {   
@@ -143,7 +145,8 @@ public class Enchere
                         id_art integer not null,
                         id_acheteur integer not null,
                         prix_achat real not null,
-                        date_fin date not null default '01.01.2025'
+                        date_fin date not null default '01-01-2025',
+                        enCours boolean default 'true'
                     )
                     """);
         }
@@ -246,7 +249,7 @@ public class Enchere
          }
          else
          {
-            System.out.println(Lench.get(i));
+            System.out.println(getIdEnchere(con, Lench.get(i).getArt())+ " " + Lench.get(i));
          }
       }
       System.out.println("");
@@ -398,48 +401,58 @@ public class Enchere
     public static void NouvelleEnchere(Connection con, Enchere ench)
             throws SQLException, EnchereExisteDeja
     {
-        con.setAutoCommit(false);
-        
-        try ( PreparedStatement chercheEnchere = con.prepareStatement(
-                "select id_ench from encheres where id_art = ?")) 
+        if(!Utile.dateDepassee(ench.getDate_fin()))
         {
-            chercheEnchere.setInt(1, ench.getArt().getIdArticle(con));
-            
-            ResultSet rsttest = chercheEnchere.executeQuery();
-            if (rsttest.next()) 
+            con.setAutoCommit(false);
+        
+            try ( PreparedStatement chercheEnchere = con.prepareStatement(
+                    "select id_ench from encheres where id_art = ?")) 
             {
-                throw new EnchereExisteDeja();
-            }
-            else
-            {
-               try (PreparedStatement pst = con.prepareStatement(
-                     """
-                 insert into encheres (id_art,id_acheteur,prix_achat,date_fin) values (?,?,?,?)
-                 """, PreparedStatement.RETURN_GENERATED_KEYS)) 
-                {
-                    pst.setInt(1, ench.getArt().getIdArticle(con));
-                    pst.setInt(2, ench.getEnchereur().getIdPersonne(con));
-                    pst.setDouble(3, ench.getPrix());
-                    pst.setDate(4, Date.valueOf(ench.getDate_fin()));
-                    pst.executeUpdate();
-                    con.commit();
+                chercheEnchere.setInt(1, ench.getArt().getIdArticle(con));
 
-                    try ( ResultSet rid = pst.getGeneratedKeys()) 
+                ResultSet rsttest = chercheEnchere.executeQuery();
+                if (rsttest.next()) 
+                {
+                    throw new EnchereExisteDeja();
+                }
+                else
+                {
+                   try (PreparedStatement pst = con.prepareStatement(
+                         """
+                     insert into encheres (id_art,id_acheteur,prix_achat,date_fin,enCours) values (?,?,?,?,?)
+                     """, PreparedStatement.RETURN_GENERATED_KEYS)) 
                     {
-                        rid.next();
-                    }
-               }
-            }  
-         }
-         catch (Exception ex)
-         {
-            con.rollback();
-            throw ex; 
-         }
-         finally 
-         {
-            con.setAutoCommit(true);
-         }
+                        pst.setInt(1, ench.getArt().getIdArticle(con));
+                        pst.setInt(2, ench.getEnchereur().getIdPersonne(con));
+                        pst.setDouble(3, ench.getPrix());
+                        pst.setDate(4, Date.valueOf(ench.getDate_fin()));
+                        pst.setBoolean(5, true);
+                        pst.executeUpdate();
+                        con.commit();
+
+                        try ( ResultSet rid = pst.getGeneratedKeys()) 
+                        {
+                            rid.next();
+                        }
+                   }
+                }  
+             }
+             catch (Exception ex)
+             {
+                con.rollback();
+                throw ex; 
+             }
+             finally 
+             {
+                con.setAutoCommit(true);
+             }
+        }
+        else
+        {
+            System.out.println("Date déjà dépassée");
+        }
+        
+        
     }
     
     public static void updateAcheteur(Connection con, int id_ench, int id_per) throws SQLException
@@ -456,8 +469,77 @@ public class Enchere
        }
     }
     
+    public static void updateEnCours(Connection con, int id_ench, boolean statut) throws SQLException
+    {
+       try(PreparedStatement pst = con.prepareStatement("""
+            Update encheres
+            set enCours=?
+            where id_ench=?"""))
+       {
+          pst.setBoolean(1, statut);
+          pst.setInt(2, id_ench);
+          
+          pst.executeUpdate();
+       }
+    }
+    
+    public static void AutoUpdateEnCours(Connection con) throws SQLException
+    {
+       List<Enchere> Lench = getAllEncheres(con);
+       
+       String date_fin;
+       int id_Ench;
+       
+       for(int i=0; i<Lench.size(); i++)
+       {
+           date_fin = Lench.get(i).getDate_fin();
+           if(Utile.dateDepassee(date_fin))
+           {
+               id_Ench = getIdEnchere(con, Lench.get(i).getArt().getIdArticle(con));
+               updateEnCours(con, id_Ench, false);
+           }
+       }
+    }
+    
+    public static List<Enchere> getAllEnchereEnCours(Connection con) throws SQLException
+    {
+        List<Enchere> Lench = new ArrayList<>();
+        
+        try(PreparedStatement pst = con.prepareStatement("select id_ench from encheres where enCours=true"))
+        {
+            ResultSet rst = pst.executeQuery();
+            
+            while(rst.next())
+            {
+                Lench.add(TrouveEnchereId(con, rst.getInt(1)));
+            }
+        }
+        
+        return Lench;
+    }
+    
+    public static List<Enchere> getAllEnchereFinie(Connection con) throws SQLException
+    {
+        List<Enchere> Lench = new ArrayList<>();
+        
+        try(PreparedStatement pst = con.prepareStatement("select id_ench from encheres where enCours=false"))
+        {
+            ResultSet rst = pst.executeQuery();
+            
+            while(rst.next())
+            {
+                Lench.add(TrouveEnchereId(con, rst.getInt(1)));
+            }
+        }
+        
+        return Lench;
+    }
+    
+    
     public static void updatePrix(Connection con, int id_ench, double prix) throws SQLException
     {
+        
+       
        try(PreparedStatement pst = con.prepareStatement("""
             update encheres
             set prix_achat = ?
@@ -742,16 +824,14 @@ public class Enchere
             
       List<Enchere> Lench = new ArrayList<>();
       
-      for(int i=0; i<Lart.size(); i++)
+      for(int j=0; j<Lench_creee.size(); j++)
       {
-         for(int j=0; j<Lench_creee.size(); j++)
-         {
-            if(Lench_creee.get(j).getArt().getIdArticle(con) == Lart.get(i).getIdArticle(con))
-            {
-               Lart.remove(i);
-            }
-         }      
-      }
+        /*if(Lart.contains(Lench_creee.get(j).getArt()))
+        {
+               Lart.remove(Lench_creee.get(j).getArt());
+        }*/
+        Lart.remove(Lench_creee.get(j).getArt());
+      }      
       
       
       if(n> Lart.size())
@@ -789,9 +869,25 @@ public class Enchere
             var =  var = Math.random()*29;
             a_jour = 1 + (int)var;
 
-            a_date = a_annee + "-" + a_mois + "-" + a_jour;         
+            a_date = a_annee + "-";
+            if(a_mois<10)
+            {
+                a_date = a_date + "0" + a_mois + "-";
+            }
+            else
+            {
+                a_date = a_date + a_mois + "-";
+            }
+            if(a_jour<10)
+            {
+                a_date = a_date + "0" + a_jour;
+            }
+            else
+            {
+                a_date = a_date + a_jour;
+            }         
 
-            Lench.add(new Enchere(a_art, a_prix, a_date, a_per));
+            Lench.add(new Enchere(a_art, Lire.troncature(a_prix, 2), a_date, a_per));
             
             Lart.remove(a_art);
          }
