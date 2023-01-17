@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Date;  
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Enchere 
@@ -304,6 +305,7 @@ public class Enchere
         }
     }
     
+    
     public static Enchere TrouveEnchereId(Connection con, int id_ench) throws SQLException 
     {
         try ( PreparedStatement chercheId = con.prepareStatement(
@@ -521,6 +523,55 @@ public class Enchere
         finally 
         {
             con.setAutoCommit(true);
+        }
+    }
+    
+    public static List<Article> getArticleSansEnchere(Connection con) throws SQLException
+    {
+        List<Enchere> Lench = getAllEncheres(con);
+        List<Article> Lart = Article.getAllArticle(con);
+        
+        
+        for(int i=0; i<Lench.size(); i++)
+        {
+            Lart.remove(Lench.get(i).getArt());
+        }
+        
+        return Lart;
+    }
+    
+    public static List<Enchere> getCatEnchere(Connection con, String cat) throws SQLException
+    {
+        if(cat.length() != 2)
+        {
+            return null;
+        }
+        else
+        {
+            List<String> cats = new ArrayList<>();
+            Collections.addAll(cats, "Cu", "TE", "MA", "VE", "BR", "TR", "JE", "PU", "BE", "MU", "SP");
+            
+            int idArt;
+            List<Enchere> Lench = new ArrayList();
+                    
+            if(cats.contains(cat))
+            {
+                try(PreparedStatement pst = con.prepareStatement("""
+                    select encheres.id_art from encheres
+                    join articles on articles.id_art = encheres.id_art
+                    where articles.cat=?"""))
+                {
+                    pst.setString(1, cat);
+                    ResultSet rst = pst.executeQuery();
+                    
+                    while(rst.next())
+                    {
+                        idArt = rst.getInt(1);
+                        Lench.add(Enchere.TrouveEnchere(con, idArt));
+                    }
+                }
+            }
+            return Lench;
         }
     }
     

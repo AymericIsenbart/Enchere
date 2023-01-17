@@ -410,35 +410,10 @@ public class Main
                }
                if(rep == 17)
                {
+                  List<Enchere> Lench = Enchere.getCatEnchere(con, "CU");
+                   System.out.println(Lench);
                   
-                  System.out.println("Affiche toutes les ecnhères :");
                   
-                  List<Enchere> Lench = Enchere.getAllEncheres(con);
-                  List<InterfEnchere> Linterf = InterfEnchere.getAllEnchere(con, Lench);
-                  
-                  for(int i=0; i<Linterf.size(); i++)
-                  {
-                     if(Linterf.get(i).getId_acheteur() <=0)
-                     {
-                        System.out.println("Problème avec l'acheteur --> ench d'id" + Linterf.get(i).getId_ench());
-                     }
-                     else if(Linterf.get(i).getId_proprio() <=0)
-                     {
-                        System.out.println("Problème avec le proprio --> ench d'id" + Linterf.get(i).getId_ench());
-                     }
-                     else
-                     {
-                        System.out.println(Lench.get(i));
-                        
-                        //System.out.println(Linterf.get(i).getId_proprio() + " " + Linterf.get(i).getId_acheteur() + " " + Linterf.get(i).getId_ench());
-                        System.out.println(Linterf.get(i).toString(con));
-                     }
-                  }
-                  
-                  /*Enchere ench = Enchere.TrouveEnchereId(con, 4);
-                  System.out.println(ench);
-                  Personne per = ench.getArt().getPer_art();
-                  System.out.println(per);*/
                }
                if(rep == 18)
                {

@@ -446,7 +446,7 @@ public class Article
                         where cat = ?
                         """
                 )){
-                    pst.setString(6, cat);
+                    pst.setString(1, cat);
                     ResultSet tlu= pst.executeQuery();
                     
             while(tlu.next())
