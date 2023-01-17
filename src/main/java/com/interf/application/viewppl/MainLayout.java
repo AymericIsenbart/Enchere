@@ -9,6 +9,7 @@ import com.interf.application.views.onglets.Accueil;
 import com.interf.application.views.onglets.Ajouter;
 import com.interf.application.views.onglets.Biens;
 import com.interf.application.views.onglets.Cuisine;
+import com.interf.application.views.onglets.Encheresgagnées;
 import com.interf.application.views.onglets.Habits;
 import com.interf.application.views.onglets.Infouser;
 import com.interf.application.views.onglets.Login;
@@ -133,6 +134,7 @@ public class MainLayout extends AppLayout {
         nav.addItem(new AppNavItem("Mes articles", Biens.class, "la la-folder-open"));
         nav.addItem(new AppNavItem("Mes offres", Mesoffres.class, "la la-toolbox"));
         nav.addItem(new AppNavItem("Mes encheres", Mesencheres.class, "la la-dollar"));
+        nav.addItem(new AppNavItem("Encheres gagnées", Encheresgagnées.class, "la la-gavel"));
         nav.addItem(new AppNavItem("Utilisateurs", Utilisateurs.class, "la la-user"));
         nav.addItem(new AppNavItem("Cuisine", Cuisine.class, "la la-coffee"));
         nav.addItem(new AppNavItem("Voitures", Voitures.class, "la la-car"));

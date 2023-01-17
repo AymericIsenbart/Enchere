@@ -909,7 +909,7 @@ public class Enchere
                  select * from encheres
                  join articles 
                     on encheres.id_art=articles.id_art
-                        where id_proprietaire!=? 
+                        where id_proprietaire!=? and enCours=true
                  """
        ))
       {
@@ -942,7 +942,40 @@ public class Enchere
        try ( PreparedStatement pst = con.prepareStatement( 
                """
                  select * from encheres
-                        where id_acheteur=? 
+                        where id_acheteur=? and enCours=true
+                 """
+       ))
+      {
+         pst.setInt(1, id_proprio);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  public static List<Enchere> getMesoffresGagnées(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                        where id_acheteur=? and enCours=false
                  """
        ))
       {
@@ -978,7 +1011,43 @@ public class Enchere
                  select * from encheres
                     join articles
                     on encheres.id_art=articles.id_art
-                        where id_proprietaire=? 
+                        where id_proprietaire=? and enCours=true
+                 """
+       ))
+      {
+         pst.setInt(1, id_proprio);
+         /*pst.setString(2, categorie);*/
+         ResultSet tlu = pst.executeQuery(); 
+         
+            while(tlu.next())
+            {
+               id_art = tlu.getInt(2);
+               id_enchereur = tlu.getInt(3);
+               prx = tlu.getDouble(4);
+               dte = tlu.getString(5);
+               
+               Lench.add(new Enchere(Article.TrouveArticle(con, id_art), prx, dte, Personne.TrouvePersonne(con, id_enchereur)));
+            }
+         }
+       
+       return Lench;
+    }
+  
+  public static List<Enchere> getMesEncheresVendues(Connection con, int id_proprio) throws SQLException
+    {
+       List<Enchere> Lench = new ArrayList<>();
+       
+       int id_art;
+       int id_enchereur;
+       double prx;
+       String dte;
+       
+       try ( PreparedStatement pst = con.prepareStatement( 
+               """
+                 select * from encheres
+                    join articles
+                    on encheres.id_art=articles.id_art
+                        where id_proprietaire=? and enCours=true
                  """
        ))
       {
@@ -1014,7 +1083,7 @@ public class Enchere
                  select * from encheres
                     join articles
                     on encheres.id_art=articles.id_art
-                        where nom_art like ? 
+                        where nom_art like ? and enCours=true
                  """
        ))
       {
@@ -1049,7 +1118,7 @@ public class Enchere
                """
                  select * from encheres
                     join articles
-                    on encheres.id_art=articles.id_art
+                    on encheres.id_art=articles.id_art and enCours=true
                         where cat like ? 
                  """
        ))
