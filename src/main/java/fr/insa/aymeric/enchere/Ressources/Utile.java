@@ -60,19 +60,24 @@ public class Utile
         if(date.length() == 10)
         {
             String currentDate = java.time.LocalDate.now().toString();
+            System.out.println(date);
             
+            System.out.print("Annee");
             if(getYear(currentDate) < getYear(date))
             {
+                
                 return false;
             }
-            else
+            else if(getYear(currentDate) == getYear(date))
             {
+                System.out.print(" Mois");
                 if(getMonth(currentDate) < getMonth(date))
                 {
                     return false;
                 }
-                else
+                else if(getMonth(currentDate) == getMonth(date))
                 {
+                    System.out.print(" Jour");
                     if(getDay(currentDate) <= getDay(date))
                     {
                         return false;
@@ -83,6 +88,14 @@ public class Utile
                         return true;
                     } 
                 }
+                else
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                return true;
             }
         }
         else

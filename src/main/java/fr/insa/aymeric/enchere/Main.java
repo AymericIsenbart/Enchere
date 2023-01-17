@@ -417,7 +417,7 @@ public class Main
                }
                if(rep == 17)
                {
-                   System.out.println(Article.getAllArticle(con).size());
+                   Enchere.AutoUpdateEnCours(con);
                }
                if(rep == 18)
                {

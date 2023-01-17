@@ -202,6 +202,7 @@ public class Article
       System.out.println("");
       for(int i=0; i<Lart.size(); i++)
       {
+         System.out.print(Lart.get(i).getIdArticle(con) + " ");
          System.out.println(Lart.get(i));
       }
       

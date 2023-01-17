@@ -231,6 +231,23 @@ public class Enchere
        return Lench;
     }
     
+    public static boolean getStatut(Connection con, int id_art) throws SQLException
+    {
+        try (PreparedStatement pst = con.prepareStatement("""
+            Select enCours from encheres
+            where id_art=?"""))
+        {
+            pst.setInt(1, id_art);
+            ResultSet rst = pst.executeQuery();
+            
+            while(rst.next())
+            {
+                return rst.getBoolean(1);
+            }
+        }
+        return false;
+    }
+    
         
     public static void AfficheEncheres(Connection con) throws SQLException 
    {
@@ -249,7 +266,8 @@ public class Enchere
          }
          else
          {
-            System.out.println(getIdEnchere(con, Lench.get(i).getArt())+ " " + Lench.get(i));
+            System.out.print(getIdEnchere(con, Lench.get(i).getArt())+ " " + Lench.get(i) + " -> ");
+            System.out.println(getStatut(con, Lench.get(i).getArt().getIdArticle(con)));
          }
       }
       System.out.println("");
@@ -319,11 +337,12 @@ public class Enchere
                         
             if(testId.next())
             {
+               int id_art = testId.getInt(2);
                int id_ache = testId.getInt(3);
                double prx = testId.getDouble(4);
                String dt = testId.getString(5);
                
-               Article art = Article.TrouveArticle(con, id_ench);
+               Article art = Article.TrouveArticle(con, id_art);
                Personne acheteur = Personne.TrouvePersonne(con, id_ache);
                
                Enchere ench = new Enchere(art, prx, dt, acheteur);
@@ -493,14 +512,20 @@ public class Enchere
        for(int i=0; i<Lench.size(); i++)
        {
            date_fin = Lench.get(i).getDate_fin();
+           
+           System.out.print(date_fin + " ");
+           System.out.println(Utile.dateDepassee(date_fin) + "  an : " + Utile.getYear(date_fin));
+           
+           
            if(Utile.dateDepassee(date_fin))
            {
                id_Ench = getIdEnchere(con, Lench.get(i).getArt().getIdArticle(con));
                updateEnCours(con, id_Ench, false);
+               
            }
        }
-       
        changeProprio(con);
+       
     }
     
     public static List<Enchere> getAllEnchereEnCours(Connection con) throws SQLException
@@ -530,6 +555,7 @@ public class Enchere
             
             while(rst.next())
             {
+                System.out.println(rst.getInt(1));
                 Lench.add(TrouveEnchereId(con, rst.getInt(1)));
             }
         }
@@ -1137,7 +1163,13 @@ public class Enchere
   
   public static void changeProprio(Connection con) throws SQLException
   {
+      
+      System.out.println("");
       List<Enchere> Lench = getAllEnchereFinie(con);
+      for(int i=0; i<Lench.size(); i++)
+      {
+          System.out.println(Lench.get(i));
+      }
       
       for(int i=0; i<Lench.size(); i++)
       {
