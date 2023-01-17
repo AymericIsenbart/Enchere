@@ -1089,7 +1089,7 @@ public class Enchere
        return Lench;
     }
   
-  public static List<Enchere> getRecherche(Connection con, String mot) throws SQLException
+  public static List<Enchere> getRecherche(Connection con, String mot, int id_proprio) throws SQLException
     {
        List<Enchere> Lench = new ArrayList<>();
        
@@ -1103,12 +1103,12 @@ public class Enchere
                  select * from encheres
                     join articles
                     on encheres.id_art=articles.id_art
-                        where nom_art like ? and enCours=true
+                        where nom_art like ? and enCours=true and articles.id_proprietaire!=? and id_acheteur!=?
                  """
        ))
       {
          pst.setString(1, mot);
-         /*pst.setString(2, categorie);*/
+         pst.setInt(2, id_proprio);
          ResultSet tlu = pst.executeQuery(); 
          
             while(tlu.next())
@@ -1125,7 +1125,7 @@ public class Enchere
        return Lench;
     }
   
-  public static List<Enchere> getEnchereCat(Connection con, String mot) throws SQLException
+  public static List<Enchere> getEnchereCat(Connection con, String mot, int id_proprio) throws SQLException
     {
        List<Enchere> Lench = new ArrayList<>();
        
@@ -1139,12 +1139,13 @@ public class Enchere
                  select * from encheres
                     join articles
                     on encheres.id_art=articles.id_art and enCours=true
-                        where cat like ? 
+                        where cat like ? and articles.id_proprietaire!=? and enCours=true and id_acheteur!=?
                  """
        ))
       {
          pst.setString(1, mot);
-         /*pst.setString(2, categorie);*/
+         pst.setInt(2, id_proprio);
+         pst.setInt(3, id_proprio);
          ResultSet tlu = pst.executeQuery(); 
          
             while(tlu.next())

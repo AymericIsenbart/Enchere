@@ -15,6 +15,7 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import fr.insa.aymeric.enchere.Enchere;
 import fr.insa.aymeric.enchere.Main;
 import fr.insa.aymeric.enchere.Session;
 import java.sql.Connection;
@@ -75,6 +76,7 @@ public class Login extends VerticalLayout {
                     if(mdpt.equals(mdp2)){
                         UI.getCurrent().navigate(Accueil.class);
                         Session.setId_session(id);
+                        Enchere.AutoUpdateEnCours(con);
                     }else{
                       Notification.show("Mot de passe ou identifiant invalide");  
                     }      

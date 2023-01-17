@@ -13,6 +13,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -46,8 +47,8 @@ public class RechercheObj extends VerticalLayout{
         try {
         Connection con = Main.connectGeneralPostGres("localhost", 5439, "postgres", "postgres", "pass");
         String mot = Recherche.getMot();
-        
-        List<Enchere> enche =  Enchere.getRecherche(con, mot);   
+        int id_proprio = Session. getId_session();
+        List<Enchere> enche =  Enchere.getRecherche(con, mot, id_proprio);   
       
         ComponentRenderer <Component, Enchere> personCardRenderer = new ComponentRenderer<>(
             enchere -> {
@@ -98,9 +99,13 @@ public class RechercheObj extends VerticalLayout{
                     int id_art = enchere.getArt().getIdArticle(con);
                     Enchere ench = Enchere.TrouveEnchere(con, id_art);
                     double prx = prix.getValue(); 
+                    if(prx > ench.getPrix()){
                     Enchere.Encherir(con, ench, acheteur, prx);
                     dialog.close();  
                     UI.getCurrent().getPage().reload();
+                    }else{
+                        Notification.show("Le prix doit être supérieur à celui proposé");  
+                    }
                     } catch (SQLException ex) {
                         Logger.getLogger(Cuisine.class.getName()).log(Level.SEVERE, null, ex);
                     }
