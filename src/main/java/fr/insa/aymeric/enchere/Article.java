@@ -181,6 +181,20 @@ public class Article
        }
    }
    
+   public static void updateProprio(Connection con, int id_art, Personne pers) throws SQLException
+   {
+      try(PreparedStatement pst = con.prepareStatement("""
+            Update articles
+            set id_proprietaire=?
+            where id_art=?"""))
+       {
+          pst.setInt(1, pers.getIdPersonne(con));
+          pst.setInt(2, id_art);
+          
+          pst.executeUpdate();
+       }
+   }
+   
    public static void AfficheArticles(Connection con) throws SQLException 
    {
       List<Article> Lart = getAllArticle(con);

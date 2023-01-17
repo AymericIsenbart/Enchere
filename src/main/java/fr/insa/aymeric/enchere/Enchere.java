@@ -499,6 +499,8 @@ public class Enchere
                updateEnCours(con, id_Ench, false);
            }
        }
+       
+       changeProprio(con);
     }
     
     public static List<Enchere> getAllEnchereEnCours(Connection con) throws SQLException
@@ -610,13 +612,16 @@ public class Enchere
     
     public static List<Article> getArticleSansEnchere(Connection con) throws SQLException
     {
-        List<Enchere> Lench = getAllEncheres(con);
-        List<Article> Lart = Article.getAllArticle(con);
-        
-        
-        for(int i=0; i<Lench.size(); i++)
+        List<Article> Lart =Article.getAllArticle(con);
+        List<Enchere> Lench_creee = getAllEncheres(con);
+
+        for(int j=0; j<Lench_creee.size(); j++)
         {
-            Lart.remove(Lench.get(i).getArt());
+          /*if(Lart.contains(Lench_creee.get(j).getArt()))
+          {
+                 Lart.remove(Lench_creee.get(j).getArt());
+          }*/
+          Lart.remove(Lench_creee.get(j).getArt());
         }
         
         return Lart;
@@ -819,20 +824,9 @@ public class Enchere
   public static List<Enchere> ListEnchereAlea(Connection con, int n) throws SQLException
    {
       List<Personne> Lper = Personne.getAllPersonne(con);
-      List<Article> Lart =Article.getAllArticle(con);
-      List<Enchere> Lench_creee = getAllEncheres(con);
+      List<Article> Lart = getArticleSansEnchere(con);
             
       List<Enchere> Lench = new ArrayList<>();
-      
-      for(int j=0; j<Lench_creee.size(); j++)
-      {
-        /*if(Lart.contains(Lench_creee.get(j).getArt()))
-        {
-               Lart.remove(Lench_creee.get(j).getArt());
-        }*/
-        Lart.remove(Lench_creee.get(j).getArt());
-      }      
-      
       
       if(n> Lart.size())
       {
@@ -1140,4 +1134,14 @@ public class Enchere
        
        return Lench;
     }
+  
+  public static void changeProprio(Connection con) throws SQLException
+  {
+      List<Enchere> Lench = getAllEnchereFinie(con);
+      
+      for(int i=0; i<Lench.size(); i++)
+      {
+          Article.updateProprio(con, Lench.get(i).getArt().getIdArticle(con), Lench.get(i).getEnchereur());
+      }
+  }
 }
