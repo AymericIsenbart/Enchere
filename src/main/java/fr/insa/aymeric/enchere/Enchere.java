@@ -1109,6 +1109,7 @@ public class Enchere
       {
          pst.setString(1, mot);
          pst.setInt(2, id_proprio);
+         pst.setInt(3, id_proprio);
          ResultSet tlu = pst.executeQuery(); 
          
             while(tlu.next())
